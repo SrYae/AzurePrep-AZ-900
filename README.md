@@ -1,7 +1,7 @@
 <img width="1907" height="953" alt="image" src="https://github.com/user-attachments/assets/cb2d7b1c-aa47-4016-918d-c9030dd938d5" />
 # 🚀 AzurePrep AZ-900
 
-Una aplicación web interactiva diseñada para ayudarte a estudiar y superar el examen de certificación **Microsoft Azure Fundamentals (AZ-900)**. 
+Una aplicación web diseñada para ayudarte a estudiar el examen de certificación **Microsoft Azure Fundamentals (AZ-900)**. 
 
 Esta herramienta convierte el estudio en una experiencia dinámica a través de la gamificación, permitiéndote poner a prueba tus conocimientos sobre la nube de Microsoft de una manera entretenida.
 
