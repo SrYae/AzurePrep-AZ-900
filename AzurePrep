@@ -1,0 +1,2186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>AZ-900 Study App</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@400;500&family=Caveat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#05060a;--bg1:#0d1018;--bg2:#131820;--bg3:#192030;--bg4:#1f2840;
+  --a:#4f8ef7;--a2:#22d3ee;--a3:#a78bfa;
+  --ok:#34d399;--warn:#fbbf24;--err:#f87171;--pink:#f472b6;--orange:#fb923c;
+  --t:#ffffff;--t2:#a8b4cc;--t3:#4a5a78;
+  --b:rgba(255,255,255,.07);--b2:rgba(255,255,255,.13);--b3:rgba(255,255,255,.2);
+  --glow:rgba(79,142,247,.13);
+  --r:14px;--r2:20px;
+  --sidebar-w:220px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--t);display:flex;flex-direction:column;min-height:100vh;font-size:14px;line-height:1.6;overflow-x:hidden}
+#starfield{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.55}
+
+/* ── LOGIN ── */
+#login-screen{
+  position:fixed;inset:0;z-index:1000;background:rgba(5,6,10,.7);backdrop-filter:blur(4px);
+  display:flex;align-items:center;justify-content:center;padding:20px;
+}
+#login-screen.hidden{display:none}
+.login-wrap{width:100%;max-width:420px;position:relative;z-index:1001}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:32px;justify-content:center}
+.login-badge{width:48px;height:48px;border-radius:14px;background:linear-gradient(135deg,var(--a),var(--a2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff}
+.login-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff}
+.login-sub{font-size:12px;color:var(--t3);font-family:'DM Mono',monospace}
+.login-card{background:rgba(13,16,24,.92);backdrop-filter:blur(20px);border:1px solid var(--b);border-radius:24px;padding:32px}
+.login-card h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:6px;color:#fff}
+.login-card p{font-size:13px;color:var(--t2);margin-bottom:24px}
+.login-input-wrap{position:relative;margin-bottom:14px}
+.login-input-wrap .l-avatar{
+  position:absolute;left:12px;top:50%;transform:translateY(-50%);
+  width:28px;height:28px;border-radius:8px;background:var(--bg3);
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;
+  color:var(--a);font-family:'Syne',sans-serif;transition:background .2s;
+}
+.login-input{width:100%;padding:12px 12px 12px 50px;background:var(--bg2);border:1px solid var(--b);border-radius:12px;color:var(--t);font-size:14px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .2s}
+.login-input:focus{border-color:var(--a)}
+.login-btn{width:100%;padding:13px;border-radius:12px;border:none;background:linear-gradient(135deg,var(--a),var(--a2));color:#fff;font-family:'Syne',sans-serif;font-weight:700;font-size:14px;cursor:pointer;transition:opacity .2s;margin-bottom:24px}
+.login-btn:hover{opacity:.88}
+.login-divider{display:flex;align-items:center;gap:12px;margin-bottom:16px;font-size:11px;color:var(--t3);font-family:'DM Mono',monospace}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:var(--b)}
+.profiles-list{display:flex;flex-direction:column;gap:8px;max-height:180px;overflow-y:auto}
+.profile-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--bg2);border:1px solid var(--b);border-radius:12px;cursor:pointer;transition:all .18s}
+.profile-item:hover{border-color:var(--b2);background:var(--bg3)}
+.p-avatar{width:32px;height:32px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:13px;flex-shrink:0}
+.p-info{flex:1;min-width:0}
+.p-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-meta{font-size:11px;color:var(--t3);font-family:'DM Mono',monospace}
+.p-del{width:24px;height:24px;border:none;background:none;color:var(--t3);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;border-radius:6px;transition:all .15s;flex-shrink:0}
+.p-del:hover{background:rgba(248,113,113,.1);color:var(--err)}
+.no-profiles{font-size:12px;color:var(--t3);text-align:center;padding:12px;font-family:'DM Mono',monospace}
+
+/* ── TOPBAR ── */
+.topbar{
+  display:flex;align-items:center;gap:0;padding:0 16px 0 0;
+  height:54px;border-bottom:1px solid var(--b);background:rgba(13,16,24,.92);backdrop-filter:blur(12px);
+  flex-shrink:0;position:sticky;top:0;z-index:90;
+}
+.sidebar-toggle-btn{
+  width:54px;height:54px;border:none;background:none;
+  color:var(--t2);cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:18px;transition:color .15s;flex-shrink:0;border-right:1px solid var(--b);
+}
+.sidebar-toggle-btn:hover{color:var(--t)}
+.logo{display:flex;align-items:center;gap:9px;margin-right:20px;padding-left:14px}
+.logo-badge{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--a),var(--a2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:11px;color:#fff;flex-shrink:0}
+.logo-text{font-family:'Syne',sans-serif;font-weight:700;font-size:14px;white-space:nowrap}
+.logo-text span{color:var(--t2);font-weight:400;font-size:11px;margin-left:5px;font-family:'DM Mono',monospace}
+.nav-tabs{display:flex;gap:2px;flex:1;overflow-x:auto;scrollbar-width:none}
+.nav-tabs::-webkit-scrollbar{display:none}
+.nav-tab{padding:6px 13px;border:none;background:none;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--t3);cursor:pointer;border-radius:8px;transition:all .18s;white-space:nowrap;flex-shrink:0}
+.nav-tab:hover{color:var(--t2);background:var(--bg3)}
+.nav-tab.active{color:var(--t);background:var(--bg3)}
+.topbar-right{display:flex;align-items:center;gap:8px;margin-left:auto;flex-shrink:0}
+.lang-toggle{display:flex;gap:2px;background:var(--bg3);border-radius:8px;padding:3px}
+.lang-btn{padding:4px 9px;border:none;background:none;font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);cursor:pointer;border-radius:6px;transition:all .15s}
+.lang-btn.active{background:var(--bg4);color:var(--t)}
+.xp-chip{display:flex;align-items:center;gap:5px;background:var(--bg3);border:1px solid var(--b);border-radius:20px;padding:4px 11px 4px 8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--t2)}
+.xp-star{color:var(--a3);font-size:12px}
+.user-chip{display:flex;align-items:center;gap:7px;background:var(--bg3);border:1px solid var(--b);border-radius:20px;padding:4px 11px 4px 6px;cursor:pointer;transition:all .15s}
+.user-chip:hover{border-color:var(--b2)}
+.uc-avatar{width:22px;height:22px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:10px;flex-shrink:0}
+.uc-name{font-size:12px;color:var(--t2);font-family:'DM Mono',monospace;white-space:nowrap}
+
+/* ── LAYOUT ── */
+.app-body{display:flex;flex:1;overflow:hidden;position:relative;z-index:1}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:rgba(13,16,24,.9);backdrop-filter:blur(10px);border-right:1px solid var(--b);
+  overflow-y:auto;overflow-x:hidden;
+  transition:width .25s cubic-bezier(.22,1,.36,1),transform .25s;
+  display:flex;flex-direction:column;z-index:2;
+}
+.sidebar.collapsed{width:52px}
+.sidebar::-webkit-scrollbar{width:4px}
+.sidebar::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:2px}
+.sb-inner{padding:8px 6px;flex:1}
+.sidebar-domain-hd{
+  padding:8px 8px 2px;font-family:'DM Mono',monospace;font-size:10px;
+  color:var(--t3);text-transform:uppercase;letter-spacing:.07em;
+  white-space:nowrap;overflow:hidden;transition:opacity .2s;
+}
+.sidebar.collapsed .sidebar-domain-hd{opacity:0;height:0;padding:0;overflow:hidden}
+.sb-bar{height:2px;background:var(--bg3);border-radius:1px;margin:2px 8px 6px;transition:opacity .2s}
+.sidebar.collapsed .sb-bar{opacity:0;height:0;margin:0;overflow:hidden}
+.sb-fill{height:100%;border-radius:1px;transition:width .4s}
+.sb-item{
+  display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:10px;
+  cursor:pointer;transition:all .15s;color:var(--t2);border:1px solid transparent;
+  overflow:hidden;white-space:nowrap;
+}
+.sb-item:hover{background:var(--bg3);color:var(--t)}
+.sb-item.active{background:var(--glow);color:var(--a);border-color:rgba(79,142,247,.2)}
+.sb-check{width:16px;height:16px;border-radius:5px;border:1px solid var(--t3);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0;transition:all .2s}
+.sb-check.done{background:var(--ok);border-color:var(--ok);color:var(--bg)}
+.sb-name{font-size:12px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:opacity .2s}
+.sidebar.collapsed .sb-name{opacity:0;width:0}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;padding:24px 28px;background:transparent;position:relative;z-index:1}
+.main::-webkit-scrollbar{width:6px}
+.main::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+.section{display:none}.section.active{display:block}
+@keyframes warpIn{from{opacity:0;transform:scale(.96) translateY(14px);filter:blur(5px)}to{opacity:1;transform:none;filter:none}}
+@keyframes warpOut{from{opacity:1;transform:none;filter:none}to{opacity:0;transform:scale(1.03) translateY(-10px);filter:blur(4px)}}
+.section.warp-enter{animation:warpIn .38s cubic-bezier(.22,1,.36,1) both}
+.section.warp-exit{animation:warpOut .22s ease-in both}
+
+/* WARP OVERLAY */
+#warp-overlay{position:fixed;inset:0;z-index:500;pointer-events:none;opacity:0}
+
+/* PvP STYLES */
+.pvp-panel{max-width:760px;margin:0 auto}
+.pvp-hero{text-align:center;padding:32px 0 24px}
+.pvp-hero .big-icon{font-size:52px;margin-bottom:12px}
+.pvp-hero h2{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:6px}
+.pvp-hero p{font-size:13px;color:var(--t2)}
+.pvp-step-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:20px 0}
+.pvp-step{background:var(--bg1);border:1px solid var(--b);border-radius:20px;padding:22px;cursor:pointer;transition:all .22s;text-align:center}
+.pvp-step:hover{border-color:var(--b2);transform:translateY(-2px)}
+.pvp-step .ps-icon{font-size:32px;margin-bottom:10px}
+.pvp-step .ps-name{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:4px}
+.pvp-step .ps-desc{font-size:12px;color:var(--t3)}
+.pvp-box{background:var(--bg1);border:1px solid var(--b);border-radius:20px;padding:24px;margin-bottom:16px}
+.pvp-box h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.pvp-code-area{background:var(--bg2);border:1px solid var(--b);border-radius:12px;padding:14px 16px;font-family:'DM Mono',monospace;font-size:11px;color:var(--a2);word-break:break-all;line-height:1.6;max-height:100px;overflow-y:auto;margin-bottom:10px;user-select:all}
+.pvp-input{width:100%;padding:10px 14px;background:var(--bg2);border:1px solid var(--b);border-radius:12px;color:var(--t);font-size:12px;font-family:'DM Mono',monospace;outline:none;transition:border-color .2s;margin-bottom:10px;resize:vertical;min-height:72px}
+.pvp-input:focus{border-color:var(--a)}
+.pvp-status{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--t2);margin-bottom:16px}
+.pvp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.pvp-dot.pulsing{animation:pvpPulse 1.2s infinite}
+@keyframes pvpPulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.pvp-scoreboard{display:grid;grid-template-columns:1fr auto 1fr;gap:16px;align-items:center;margin-bottom:20px}
+.pvp-player{text-align:center}
+.pvp-player-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pvp-player-score{font-family:'Syne',sans-serif;font-size:36px;font-weight:800;line-height:1}
+.pvp-player-score.me{color:var(--a)}
+.pvp-player-score.op{color:var(--pink)}
+.pvp-vs{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;color:var(--t3)}
+.pvp-trail{display:flex;gap:4px;justify-content:center;margin-top:6px;flex-wrap:wrap}
+.pvp-dot-trail{width:10px;height:10px;border-radius:50%;border:1px solid var(--b2);background:var(--bg3);flex-shrink:0;transition:background .2s,border-color .2s}
+.pvp-dot-trail.right{background:var(--ok);border-color:var(--ok)}
+.pvp-dot-trail.wrong{background:var(--err);border-color:var(--err)}
+.pvp-dot-trail.current{border-color:var(--a);background:rgba(79,142,247,.2);animation:pvpPulse 1s infinite}
+.pvp-waiting-screen{text-align:center;padding:40px 0}
+.pvp-waiting-screen .wt-icon{font-size:48px;margin-bottom:16px}
+.pvp-waiting-screen h3{font-family:'Syne',sans-serif;font-size:18px;font-weight:700;margin-bottom:8px}
+.pvp-waiting-screen p{font-size:13px;color:var(--t2)}
+.pvp-result{text-align:center;padding:24px 0}
+.pvp-result .winner-badge{font-size:52px;margin-bottom:12px}
+.pvp-result h2{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;margin-bottom:6px}
+.pvp-result p{font-size:14px;color:var(--t2);margin-bottom:20px}
+.pvp-scores-row{display:flex;justify-content:center;gap:32px;margin-bottom:24px}
+.pvp-scores-row .sc{text-align:center}
+.pvp-scores-row .sc-num{font-family:'Syne',sans-serif;font-size:40px;font-weight:800}
+.pvp-scores-row .sc-lbl{font-size:11px;font-family:'DM Mono',monospace;color:var(--t3);text-transform:uppercase;letter-spacing:.06em}
+@media(max-width:600px){.pvp-step-grid{grid-template-columns:1fr}.pvp-player-score{font-size:28px}}
+
+/* ── BOOK PROGRESS ── */
+.book-outer{position:relative;margin-bottom:12px}
+.book-shell{
+  display:flex;min-height:540px;
+  background:#03060f;
+  border:1px solid rgba(0,255,255,.2);
+  border-radius:6px;
+  box-shadow:0 0 0 1px rgba(0,255,255,.06),0 0 40px rgba(0,255,255,.07),0 0 80px rgba(167,139,250,.05),0 24px 60px rgba(0,0,0,.7);
+  overflow:hidden;position:relative;
+}
+/* scanlines */
+.book-shell::before{
+  content:'';position:absolute;inset:0;z-index:3;pointer-events:none;
+  background:repeating-linear-gradient(to bottom,transparent 0,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 3px);
+}
+/* grid */
+.book-left{
+  flex:1;min-width:0;padding:32px 28px 32px 36px;position:relative;overflow:hidden;
+  background:linear-gradient(160deg,#03080f 0%,#04091a 100%);
+  border-right:1px solid rgba(0,255,255,.08);
+}
+.book-right{
+  flex:1;min-width:0;padding:32px 36px 32px 28px;position:relative;overflow:hidden;
+  background:linear-gradient(160deg,#04091a 0%,#050612 100%);
+}
+.book-left::after,.book-right::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(0,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,255,.025) 1px,transparent 1px);
+  background-size:36px 36px;
+}
+.book-spine{
+  width:24px;flex-shrink:0;position:relative;
+  background:linear-gradient(to right,transparent 0%,rgba(0,255,255,.04) 30%,rgba(0,255,255,.55) 50%,rgba(167,139,250,.55) 50%,rgba(167,139,250,.04) 70%,transparent 100%);
+  display:flex;align-items:center;justify-content:center;
+}
+.book-spine::before,.book-spine::after{
+  content:'';position:absolute;left:50%;width:1px;
+  background:linear-gradient(to bottom,transparent,rgba(0,255,255,.5),rgba(167,139,250,.5),transparent);
+}
+.book-spine::before{transform:translateX(-3px);height:80%}
+.book-spine::after{transform:translateX(2px);height:60%;background:linear-gradient(to bottom,transparent,rgba(167,139,250,.4),transparent)}
+.spine-label{
+  writing-mode:vertical-rl;transform:rotate(180deg);
+  font-family:'DM Mono',monospace;font-weight:500;font-size:8px;
+  color:rgba(0,255,255,.5);letter-spacing:.22em;text-transform:uppercase;
+  text-shadow:0 0 8px rgba(0,255,255,.6);
+}
+/* Book text styles — futuristic retro */
+.bk-title{
+  font-family:'Syne',sans-serif;font-size:13px;font-weight:700;
+  color:rgba(0,255,255,.9);letter-spacing:.18em;text-transform:uppercase;
+  margin-bottom:2px;text-shadow:0 0 16px rgba(0,255,255,.5);
+}
+.bk-date{
+  font-family:'DM Mono',monospace;font-size:10px;
+  color:rgba(0,255,255,.32);margin-bottom:20px;letter-spacing:.06em;
+}
+.bk-date::before{content:'> ';color:rgba(0,255,255,.2)}
+.bk-section{margin-bottom:18px;position:relative}
+.bk-domain-hd{
+  font-family:'DM Mono',monospace;font-size:10px;font-weight:500;
+  color:rgba(167,139,250,.9);text-transform:uppercase;letter-spacing:.12em;
+  margin-bottom:8px;padding-bottom:5px;
+  border-bottom:1px solid rgba(167,139,250,.18);
+  text-shadow:0 0 10px rgba(167,139,250,.4);
+}
+.bk-progress-track{display:flex;align-items:center;gap:10px;margin:6px 0 4px}
+.bk-bar-outer{
+  flex:1;height:10px;background:rgba(0,255,255,.05);
+  border:1px solid rgba(0,255,255,.15);border-radius:1px;overflow:hidden;position:relative;
+}
+.bk-bar-inner{
+  height:100%;border-radius:0;
+  transition:width .9s cubic-bezier(.22,1,.36,1);
+  position:relative;
+}
+.bk-bar-inner::after{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0,transparent 3px,rgba(0,0,0,.2) 3px,rgba(0,0,0,.2) 4px);
+}
+.bk-pct{
+  font-family:'DM Mono',monospace;font-size:11px;font-weight:500;
+  min-width:34px;text-align:right;
+}
+.bk-topics{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,.25);margin-bottom:4px;letter-spacing:.04em}
+.bk-topic-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px}
+.bk-chip{
+  font-family:'DM Mono',monospace;font-size:10px;padding:2px 8px;
+  border-radius:2px;border:1px solid rgba(0,255,255,.12);
+  color:rgba(0,255,255,.35);background:rgba(0,255,255,.03);
+  cursor:pointer;transition:all .15s;
+}
+.bk-chip:hover{border-color:rgba(0,255,255,.4);color:rgba(0,255,255,.9);background:rgba(0,255,255,.07)}
+.bk-chip.done{
+  border-color:rgba(52,211,153,.35);color:rgba(52,211,153,.8);
+  background:rgba(52,211,153,.06);
+  text-shadow:0 0 6px rgba(52,211,153,.3);
+}
+.bk-stat-row{
+  display:flex;justify-content:space-between;align-items:baseline;
+  padding:7px 0;border-bottom:1px solid rgba(0,255,255,.07);
+}
+.bk-stat-row:last-child{border-bottom:none}
+.bk-stat-label{
+  font-family:'DM Mono',monospace;font-size:10px;
+  color:rgba(167,139,250,.5);text-transform:uppercase;letter-spacing:.08em;
+}
+.bk-stat-label::before{content:'// ';opacity:.4}
+.bk-stat-val{
+  font-family:'Syne',sans-serif;font-size:18px;font-weight:800;
+  color:#fff;text-shadow:0 0 12px rgba(167,139,250,.4);
+}
+.bk-divider{
+  height:1px;margin:14px 0;
+  background:linear-gradient(90deg,transparent,rgba(0,255,255,.25),rgba(167,139,250,.25),transparent);
+  position:relative;
+}
+.bk-divider::after{
+  content:'◈';position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);
+  background:#04091a;padding:0 6px;
+  font-size:10px;color:rgba(0,255,255,.35);
+}
+.bk-level-bar{
+  height:16px;background:rgba(167,139,250,.05);
+  border:1px solid rgba(167,139,250,.18);border-radius:1px;
+  overflow:hidden;margin:8px 0 4px;position:relative;
+}
+.bk-level-fill{
+  height:100%;
+  background:linear-gradient(90deg,rgba(79,142,247,.6),rgba(167,139,250,.7));
+  border-radius:0;transition:width .8s;
+}
+.bk-level-fill::after{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0,transparent 5px,rgba(255,255,255,.06) 5px,rgba(255,255,255,.06) 6px);
+}
+.bk-level-text{
+  position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:'DM Mono',monospace;font-size:10px;font-weight:500;
+  color:rgba(255,255,255,.9);letter-spacing:.06em;
+  text-shadow:0 1px 4px rgba(0,0,0,.8);
+}
+.bk-ach-item{
+  display:flex;align-items:center;gap:10px;padding:6px 0;
+  border-bottom:1px solid rgba(167,139,250,.08);transition:background .15s;
+}
+.bk-ach-item:last-child{border-bottom:none}
+.bk-ach-item:not(.bk-ach-locked):hover{background:rgba(167,139,250,.05);border-radius:4px;padding-left:4px}
+.bk-ach-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bk-ach-name{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.75);flex:1}
+.bk-ach-locked{opacity:.22}
+.bk-ach-share{font-family:'DM Mono',monospace;font-size:9px;color:rgba(0,255,255,.4);letter-spacing:.04em}
+/* Holographic corner badge */
+.bk-corner-stamp{
+  position:absolute;bottom:20px;right:24px;
+  width:62px;height:62px;border-radius:50%;
+  border:1px solid rgba(0,255,255,.25);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:rgba(0,255,255,.04);
+  box-shadow:0 0 16px rgba(0,255,255,.1),inset 0 0 16px rgba(0,255,255,.04);
+  transform:rotate(-6deg);
+}
+.bk-corner-stamp::before{
+  content:'';position:absolute;inset:4px;border-radius:50%;
+  border:1px dashed rgba(0,255,255,.15);
+}
+.bk-stamp-top{font-family:'DM Mono',monospace;font-size:8px;color:rgba(0,255,255,.55);text-transform:uppercase;letter-spacing:.1em}
+.bk-stamp-pct{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:rgba(0,255,255,.9);line-height:1;text-shadow:0 0 12px rgba(0,255,255,.5)}
+.bk-stamp-bot{font-family:'DM Mono',monospace;font-size:8px;color:rgba(0,255,255,.45);letter-spacing:.06em}
+/* page header line */
+.bk-page-header{
+  display:flex;align-items:center;gap:8px;margin-bottom:18px;padding-bottom:10px;
+  border-bottom:1px solid rgba(0,255,255,.12);
+}
+.bk-page-num{
+  margin-left:auto;font-family:'DM Mono',monospace;font-size:10px;
+  color:rgba(0,255,255,.2);
+}
+@media(max-width:700px){
+  .book-shell{flex-direction:column;min-height:auto}
+  .book-spine{width:100%;height:16px;flex-direction:row}
+  .book-spine::before,.book-spine::after{display:none}
+  .spine-label{writing-mode:horizontal-tb;transform:none;font-size:8px}
+  .book-left,.book-right{padding:20px 18px}
+  .bk-topic-chips{display:none}
+}
+.page-title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;letter-spacing:-.5px;line-height:1.2;margin-bottom:4px}
+.page-sub{font-size:13px;color:var(--t2);margin-bottom:24px}
+
+/* ── DASHBOARD ── */
+.dash-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:24px;gap:16px;flex-wrap:wrap}
+.dash-greeting{flex:1}
+.dash-greeting h1{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;letter-spacing:-.5px}
+.dash-greeting p{font-size:13px;color:var(--t2);margin-top:4px}
+.dash-xp-box{background:var(--bg1);border:1px solid var(--b);border-radius:16px;padding:14px 18px;min-width:200px}
+.dash-xp-top{display:flex;justify-content:space-between;margin-bottom:8px;font-family:'DM Mono',monospace;font-size:11px;color:var(--t3)}
+.dash-xp-track{height:5px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.dash-xp-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--a3),var(--a));transition:width .5s}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:24px}
+.stat-card{background:var(--bg1);border:1px solid var(--b);border-radius:20px;padding:20px 22px;position:relative;transition:border-color .2s,transform .2s;cursor:default;min-width:0}
+.stat-card:hover{transform:translateY(-1px);border-color:var(--b2)}
+.stat-card-glow{position:absolute;inset:0;border-radius:20px;pointer-events:none;overflow:hidden}
+.stat-card-glow::after{content:'';position:absolute;inset:0}
+.stat-card.c-blue .stat-card-glow::after{background:radial-gradient(ellipse at top right,rgba(79,142,247,.18),transparent 65%)}
+.stat-card.c-green .stat-card-glow::after{background:radial-gradient(ellipse at top right,rgba(52,211,153,.15),transparent 65%)}
+.stat-card.c-warn .stat-card-glow::after{background:radial-gradient(ellipse at top right,rgba(251,191,36,.15),transparent 65%)}
+.stat-card.c-purple .stat-card-glow::after{background:radial-gradient(ellipse at top right,rgba(167,139,250,.18),transparent 65%)}
+.stat-card.c-pink .stat-card-glow::after{background:radial-gradient(ellipse at top right,rgba(244,114,182,.15),transparent 65%)}
+.stat-accent{width:7px;height:7px;border-radius:50%;margin-bottom:14px;flex-shrink:0}
+.stat-num{font-family:'Syne',sans-serif;font-size:42px;font-weight:700;line-height:1;letter-spacing:0;color:#fff}
+.stat-lbl{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.06em;margin-top:8px}
+
+.domain-grid{display:grid;grid-template-columns:1fr;gap:14px}
+.domain-card{border-radius:20px;padding:20px 22px;border:1px solid var(--b);transition:transform .2s,border-color .2s;cursor:default}
+.domain-card:hover{transform:translateY(-1px);border-color:var(--b2)}
+.dc-blue{background:linear-gradient(135deg,rgba(79,142,247,.1) 0%,var(--bg1) 60%)}
+.dc-cyan{background:linear-gradient(135deg,rgba(34,211,238,.09) 0%,var(--bg1) 60%)}
+.dc-green{background:linear-gradient(135deg,rgba(52,211,153,.09) 0%,var(--bg1) 60%)}
+.dc-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.dc-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:700}
+.dc-badge{font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);background:var(--bg3);padding:4px 10px;border-radius:20px;border:1px solid var(--b)}
+.dc-bar{height:3px;background:var(--bg3);border-radius:2px;margin-bottom:14px;overflow:hidden}
+.dc-fill{height:100%;border-radius:2px;transition:width .6s cubic-bezier(.22,1,.36,1)}
+.topic-pills{display:flex;flex-wrap:wrap;gap:6px}
+.pill{font-size:11px;padding:4px 11px;border-radius:20px;border:1px solid var(--b);color:var(--t2);cursor:pointer;transition:all .15s;font-family:'DM Mono',monospace}
+.pill:hover{color:var(--t)}
+.pill.done{border-color:rgba(52,211,153,.4);color:var(--ok);background:rgba(52,211,153,.07)}
+.pill-blue:hover{border-color:var(--a);color:var(--a)}
+.pill-cyan:hover{border-color:var(--a2);color:var(--a2)}
+.pill-green:hover{border-color:var(--ok);color:var(--ok)}
+
+/* ── STUDY ── */
+.study-layout{display:grid;grid-template-columns:260px 1fr;gap:18px;align-items:start}
+.study-topic-list{display:flex;flex-direction:column;gap:3px}
+.topic-group-hd{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;padding:10px 8px 3px}
+.topic-btn{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:10px;border:1px solid transparent;background:none;cursor:pointer;transition:all .18s;text-align:left;color:var(--t2);width:100%}
+.topic-btn:hover{background:var(--bg2);color:var(--t)}
+.topic-btn.active{background:var(--glow);color:var(--a);border-color:rgba(79,142,247,.2)}
+.topic-btn.done .tb-check{background:var(--ok);border-color:var(--ok);color:var(--bg)}
+.tb-name{font-size:12px;flex:1;line-height:1.4;text-align:left}
+.tb-check{width:16px;height:16px;border-radius:5px;border:1px solid var(--t3);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
+.study-panel{background:var(--bg1);border:1px solid var(--b);border-radius:20px;min-height:500px;position:sticky;top:20px}
+.sp-header{padding:20px 22px 16px;border-bottom:1px solid var(--b)}
+.sp-domain{font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.sp-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:700}
+.sp-body{padding:22px}
+.study-ph{display:flex;flex-direction:column;align-items:center;justify-content:center;height:420px;color:var(--t3);text-align:center;gap:10px}
+.ph-icon{font-size:38px;opacity:.3}
+.ph-text{font-size:13px}
+.explain-content{font-size:14px;color:var(--t2);line-height:1.8}
+.explain-content h3{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--t);margin:18px 0 8px}
+.explain-content h3:first-child{margin-top:0}
+.explain-content p{margin-bottom:12px}
+.explain-content ul,.explain-content ol{padding-left:18px;margin-bottom:12px}
+.explain-content li{margin:5px 0}
+.explain-content strong{color:var(--t);font-weight:500}
+.explain-content code{font-family:'DM Mono',monospace;font-size:12px;background:var(--bg3);padding:1px 5px;border-radius:4px;color:var(--a2)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:8px 16px;margin:14px 0;background:var(--bg2);border-radius:12px;padding:14px 16px;border:1px solid var(--b)}
+.kv .k{font-family:'DM Mono',monospace;font-size:11px;color:var(--a2);text-transform:uppercase;letter-spacing:.05em;padding-top:1px;white-space:nowrap}
+.kv .v{font-size:13px;color:var(--t2)}
+.tip-box{background:rgba(79,142,247,.08);border:1px solid rgba(79,142,247,.2);border-radius:12px;padding:14px 16px;margin:14px 0;font-size:13px}
+.tip-hd{font-family:'DM Mono',monospace;font-size:10px;color:var(--a);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px}
+.comparison-table{width:100%;border-collapse:collapse;margin:14px 0;font-size:13px}
+.comparison-table th{background:var(--bg3);font-family:'DM Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:var(--t3);padding:8px 12px;text-align:left;border-bottom:1px solid var(--b)}
+.comparison-table td{padding:9px 12px;border-bottom:1px solid var(--b);color:var(--t2)}
+.comparison-table tr:last-child td{border-bottom:none}
+.comparison-table tr:hover td{background:var(--bg2)}
+.badge{display:inline-block;font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;border-radius:20px;margin:2px}
+.badge-blue{background:rgba(79,142,247,.15);color:var(--a);border:1px solid rgba(79,142,247,.25)}
+.badge-green{background:rgba(52,211,153,.12);color:var(--ok);border:1px solid rgba(52,211,153,.2)}
+.badge-amber{background:rgba(251,191,36,.1);color:var(--warn);border:1px solid rgba(251,191,36,.2)}
+.badge-red{background:rgba(248,113,113,.1);color:var(--err);border:1px solid rgba(248,113,113,.2)}
+.mark-btn{margin-top:20px;padding:10px 20px;border-radius:10px;border:1px solid rgba(52,211,153,.3);background:rgba(52,211,153,.08);color:var(--ok);font-size:12px;font-family:'DM Mono',monospace;cursor:pointer;transition:all .2s}
+.mark-btn:hover{background:rgba(52,211,153,.15)}
+.mark-btn:disabled{opacity:.5;cursor:default}
+
+/* ── QUIZ ── */
+.quiz-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:20px 0}
+.mode-card{background:var(--bg1);border:1px solid var(--b);border-radius:20px;padding:20px;cursor:pointer;transition:all .22s;text-align:center}
+.mode-card:hover{border-color:var(--b2);transform:translateY(-2px)}
+.mode-card.sel{border-color:var(--a);background:var(--glow)}
+.mc-icon{font-size:28px;margin-bottom:8px}
+.mc-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:3px}
+.mc-desc{font-size:11px;color:var(--t3);font-family:'DM Mono',monospace}
+.btn{padding:9px 18px;border-radius:10px;border:1px solid var(--b);background:none;color:var(--t2);cursor:pointer;transition:all .18s;font-size:12px;font-family:'DM Mono',monospace}
+.btn:hover{border-color:var(--b2);color:var(--t);background:var(--bg2)}
+.btn.primary{background:var(--a);color:#fff;border-color:var(--a);font-size:13px;padding:11px 28px}
+.btn.primary:hover{background:#3d7ee6}
+.btn.ok{border-color:rgba(52,211,153,.4);color:var(--ok);background:rgba(52,211,153,.08)}
+.btn.danger{border-color:rgba(248,113,113,.4);color:var(--err);background:rgba(248,113,113,.08)}
+.q-prog{height:3px;background:var(--bg3);border-radius:2px;margin-bottom:18px;overflow:hidden}
+.q-fill{height:100%;background:linear-gradient(90deg,var(--a),var(--a2));border-radius:2px;transition:width .4s}
+.q-card{background:var(--bg1);border:1px solid var(--b);border-radius:20px;padding:24px}
+.q-meta{display:flex;justify-content:space-between;margin-bottom:16px}
+.q-tag{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);background:var(--bg3);padding:4px 10px;border-radius:20px}
+.q-streak{font-size:13px;color:var(--warn)}
+.q-text{font-family:'Syne',sans-serif;font-size:17px;font-weight:600;line-height:1.5;margin-bottom:20px}
+.options{display:flex;flex-direction:column;gap:8px}
+.opt{background:var(--bg2);border:1px solid var(--b);border-radius:12px;padding:12px 16px;cursor:pointer;font-size:13px;text-align:left;transition:all .18s;display:flex;align-items:center;gap:12px;color:var(--t2)}
+.opt:hover:not(:disabled){border-color:var(--b2);color:var(--t);background:var(--bg3)}
+.opt.correct{border-color:var(--ok);color:var(--ok);background:rgba(52,211,153,.1)}
+.opt.wrong{border-color:var(--err);color:var(--err);background:rgba(248,113,113,.08)}
+.opt:disabled{cursor:default}
+.opt-key{width:26px;height:26px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:11px;font-family:'DM Mono',monospace;flex-shrink:0}
+.exp-box{background:var(--bg2);border-left:3px solid var(--a);border-radius:0 10px 10px 0;padding:14px 16px;font-size:13px;line-height:1.7;color:var(--t2);margin-top:14px}
+.q-footer{display:flex;justify-content:space-between;align-items:center;margin-top:16px}
+.result-big{background:var(--bg1);border:1px solid var(--b);border-radius:20px;padding:40px;text-align:center;max-width:460px;margin:0 auto}
+.result-num{font-family:'Syne',sans-serif;font-size:52px;font-weight:800;background:linear-gradient(135deg,var(--a),var(--a2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;line-height:1;margin:8px 0}
+.result-sub{font-size:14px;color:var(--t2);margin-bottom:22px}
+.result-btns{display:flex;gap:10px;justify-content:center}
+
+/* ── FLASHCARDS ── */
+.fc-toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;gap:12px;flex-wrap:wrap}
+.fc-select{font-size:12px;padding:8px 12px;border-radius:10px;border:1px solid var(--b);background:var(--bg1);color:var(--t2);font-family:'DM Mono',monospace;cursor:pointer}
+.fc-count{font-family:'DM Mono',monospace;font-size:12px;color:var(--t3)}
+.fc-area{perspective:1200px;cursor:pointer;user-select:none;margin-bottom:18px}
+.fc-inner{position:relative;width:100%;height:220px;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.22,1,.36,1)}
+.fc-inner.flipped{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;border:1px solid var(--b)}
+.fc-front{background:var(--bg1)}
+.fc-back{background:var(--bg2);transform:rotateY(180deg);border-color:var(--b2)}
+.fc-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:12px}
+.fc-q{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;line-height:1.5}
+.fc-a{font-size:13px;line-height:1.75;color:var(--t2)}
+.fc-nav{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
+.fc-actions{display:flex;gap:8px}
+.fc-hint{text-align:center;font-size:11px;color:var(--t3);margin-top:8px;font-family:'DM Mono',monospace}
+
+/* ── COMING SOON ── */
+.soon-section{margin-top:28px}
+.soon-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+.soon-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;color:var(--t2)}
+.soon-badge{font-family:'DM Mono',monospace;font-size:10px;padding:3px 10px;border-radius:20px;background:rgba(167,139,250,.12);border:1px solid rgba(167,139,250,.25);color:var(--a3);letter-spacing:.05em}
+.soon-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.soon-card{background:var(--bg1);border:1px solid var(--b);border-radius:16px;padding:16px 18px;position:relative;overflow:hidden;opacity:.7;transition:opacity .2s}
+.soon-card:hover{opacity:.9}
+.soon-card::before{content:'';position:absolute;inset:0;border-radius:16px;pointer-events:none;background:linear-gradient(135deg,rgba(167,139,250,.06),transparent 60%)}
+.soon-lock{position:absolute;top:12px;right:12px;color:var(--t3)}
+.soon-cert{font-family:'DM Mono',monospace;font-size:11px;color:var(--a3);letter-spacing:.06em;margin-bottom:4px}
+.soon-name{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:var(--t);margin-bottom:3px}
+.soon-sub{font-size:11px;color:var(--t3);line-height:1.4}
+.soon-tag{display:inline-flex;align-items:center;gap:4px;margin-top:10px;font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);background:var(--bg3);padding:3px 8px;border-radius:20px;border:1px solid var(--b)}
+.retos-layout{display:grid;grid-template-columns:1fr 300px;gap:20px;align-items:start}
+.xp-panel{background:var(--bg1);border:1px solid var(--b);border-radius:20px;padding:20px;margin-bottom:18px}
+.xp-lv{display:flex;justify-content:space-between;font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);margin-bottom:8px}
+.xp-track{height:6px;background:var(--bg3);border-radius:3px;overflow:hidden}
+.xp-fll{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--a3),var(--a));transition:width .5s}
+.retos-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.reto-card{background:var(--bg1);border:1px solid var(--b);border-radius:20px;padding:18px;cursor:pointer;transition:all .22s;position:relative;overflow:hidden}
+.reto-card::before{content:'';position:absolute;inset:0;border-radius:20px;opacity:0;transition:opacity .25s;pointer-events:none}
+.reto-card:hover{transform:translateY(-2px);border-color:var(--b2)}
+.reto-card:hover::before{opacity:1}
+.rc-blue::before{background:radial-gradient(circle at top left,rgba(79,142,247,.14),transparent 70%)}
+.rc-cyan::before{background:radial-gradient(circle at top left,rgba(34,211,238,.12),transparent 70%)}
+.rc-purple::before{background:radial-gradient(circle at top left,rgba(167,139,250,.14),transparent 70%)}
+.rc-amber::before{background:radial-gradient(circle at top left,rgba(251,191,36,.12),transparent 70%)}
+.rc-red::before{background:radial-gradient(circle at top left,rgba(248,113,113,.12),transparent 70%)}
+.rc-green::before{background:radial-gradient(circle at top left,rgba(52,211,153,.14),transparent 70%)}
+.reto-icon{font-size:24px;margin-bottom:8px}
+.reto-name{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:4px}
+.reto-desc{font-size:12px;color:var(--t3);line-height:1.5;margin-bottom:12px}
+.reto-footer{display:flex;justify-content:space-between;align-items:center}
+.diff{font-family:'DM Mono',monospace;font-size:10px;padding:3px 9px;border-radius:20px;border:1px solid}
+.diff-e{color:var(--ok);border-color:rgba(52,211,153,.3);background:rgba(52,211,153,.08)}
+.diff-m{color:var(--warn);border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.07)}
+.diff-h{color:var(--err);border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.07)}
+.reto-xp{font-family:'DM Mono',monospace;font-size:11px;color:var(--t3)}
+.mini-panel{background:var(--bg1);border:1px solid var(--b);border-radius:20px;overflow:hidden}
+.mini-hd{padding:14px 18px;border-bottom:1px solid var(--b);font-family:'Syne',sans-serif;font-size:13px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.mini-hd .hp{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3)}
+.lb-row{display:flex;align-items:center;gap:12px;padding:11px 18px;border-bottom:1px solid var(--b);transition:background .15s}
+.lb-row:last-child{border-bottom:none}
+.lb-row:hover{background:var(--bg2)}
+.lb-rank{font-family:'DM Mono',monospace;font-size:13px;font-weight:500;min-width:20px;text-align:center}
+.lb-name{flex:1;font-size:13px;color:var(--t2)}
+.lb-score{font-family:'DM Mono',monospace;font-size:12px;color:var(--a)}
+.lb-me{background:rgba(79,142,247,.06)}
+.ach-row{display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--b);transition:background .15s}
+.ach-row:last-child{border-bottom:none}
+.ach-row.locked{opacity:.3}
+.ach-icon{font-size:18px}
+.ach-name{font-size:12px;font-weight:500;color:var(--t)}
+.ach-desc{font-size:11px;color:var(--t3)}
+.challenge-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px}
+.ch-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800}
+.timer{font-family:'DM Mono',monospace;font-size:22px;font-weight:500;color:var(--a2)}
+.timer.urgent{color:var(--err);animation:blink .6s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* ── PROGRESS ── */
+.prog-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.full-panel{background:var(--bg1);border:1px solid var(--b);border-radius:20px;padding:22px}
+.fp-title{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:16px}
+.bar-row{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.bar-label{font-size:12px;color:var(--t2);width:150px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width .6s}
+.bar-val{font-family:'DM Mono',monospace;font-size:11px;color:var(--t3);width:32px;text-align:right}
+
+/* ── ACHIEVEMENT MODAL ── */
+.ach-modal-overlay{
+  position:fixed;inset:0;z-index:5000;background:rgba(5,6,10,.8);
+  backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;
+  padding:20px;opacity:0;pointer-events:none;transition:opacity .3s;
+}
+.ach-modal-overlay.open{opacity:1;pointer-events:all}
+.ach-modal{
+  background:var(--bg1);border:1px solid var(--b2);border-radius:24px;
+  padding:0;width:100%;max-width:420px;overflow:hidden;
+  transform:translateY(16px) scale(.97);transition:transform .3s;
+}
+.ach-modal-overlay.open .ach-modal{transform:translateY(0) scale(1)}
+.ach-modal-hero{
+  padding:32px 28px 24px;text-align:center;
+  background:linear-gradient(145deg,rgba(79,142,247,.12),rgba(167,139,250,.1));
+  border-bottom:1px solid var(--b);
+}
+.ach-modal-big-icon{font-size:56px;line-height:1;margin-bottom:12px}
+.ach-modal-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;margin-bottom:6px}
+.ach-modal-desc{font-size:13px;color:var(--t2);margin-bottom:0}
+.ach-modal-xp{
+  display:inline-flex;align-items:center;gap:6px;margin-top:14px;
+  background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);
+  color:var(--a3);font-family:'DM Mono',monospace;font-size:12px;
+  padding:6px 14px;border-radius:20px;
+}
+.ach-modal-body{padding:22px 28px}
+.ach-modal-share-label{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px}
+.ach-modal-preview{
+  background:var(--bg2);border:1px solid var(--b);border-radius:14px;
+  padding:16px;margin-bottom:16px;font-size:13px;color:var(--t2);line-height:1.6;
+}
+.ach-modal-preview strong{color:#fff}
+.ach-modal-btns{display:flex;gap:10px}
+.btn-linkedin{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:12px;border-radius:12px;border:none;cursor:pointer;
+  background:#0a66c2;color:#fff;font-family:'Syne',sans-serif;
+  font-weight:700;font-size:13px;transition:background .2s;
+}
+.btn-linkedin:hover{background:#0854a0}
+.btn-linkedin svg{flex-shrink:0}
+.btn-close-ach{
+  padding:12px 18px;border-radius:12px;border:1px solid var(--b);
+  background:none;color:var(--t2);font-family:'DM Mono',monospace;
+  font-size:12px;cursor:pointer;transition:all .15s;white-space:nowrap;
+}
+.btn-close-ach:hover{border-color:var(--b2);color:#fff}
+.ach-row-unlocked{cursor:pointer;transition:background .15s}
+.ach-row-unlocked:hover{background:var(--bg2)}
+.ach-share-hint{font-family:'DM Mono',monospace;font-size:10px;color:var(--a);margin-left:auto}
+
+/* ── FOOTER ── */
+.app-footer{
+  height:36px;flex-shrink:0;
+  background:rgba(13,16,24,.92);backdrop-filter:blur(10px);border-top:1px solid var(--b);
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 20px;position:relative;z-index:5;
+}
+.footer-version{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);display:flex;align-items:center;gap:8px}
+.footer-dot{width:5px;height:5px;border-radius:50%;background:var(--ok);display:inline-block}
+.footer-right{font-family:'DM Mono',monospace;font-size:10px;color:var(--t3)}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:60px;right:20px;background:rgba(13,16,24,.95);backdrop-filter:blur(12px);border:1px solid var(--a);border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:12px;z-index:9999;pointer-events:all;opacity:0;transform:translateX(16px);transition:all .3s;max-width:260px}
+#toast.show{opacity:1;transform:translateX(0)}
+#toast:hover{border-color:var(--a2);background:rgba(13,16,24,1)}
+#t-icon{font-size:20px;flex-shrink:0}
+.t-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;color:#fff}
+.t-sub{font-size:11px;color:var(--t3)}
+
+/* ── MOBILE NAV ── */
+.mobile-nav{
+  display:none;position:fixed;bottom:0;left:0;right:0;
+  height:58px;background:var(--bg1);border-top:1px solid var(--b);
+  z-index:95;
+}
+.mobile-nav-inner{display:flex;height:100%}
+.mn-btn{flex:1;border:none;background:none;color:var(--t3);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:18px;transition:color .15s}
+.mn-btn.active{color:var(--a)}
+.mn-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.04em}
+.sidebar-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:88;backdrop-filter:blur(2px)}
+.sidebar-overlay.show{display:block}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--bg4);border-radius:3px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .study-layout{grid-template-columns:1fr}
+  .study-topic-list{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+  .retos-layout{grid-template-columns:1fr}
+  .prog-grid{grid-template-columns:1fr}
+  .quiz-modes{grid-template-columns:1fr 1fr}
+  .retos-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  body{padding-bottom:58px}
+  .nav-tabs{display:none}
+  .mobile-nav{display:flex}
+  .logo-text span{display:none}
+  .xp-chip{display:none}
+  .lang-toggle{display:none}
+  .sidebar{
+    position:fixed;left:0;top:54px;bottom:58px;z-index:89;
+    transform:translateX(-100%);width:260px!important;
+    box-shadow:4px 0 24px rgba(0,0,0,.4);
+  }
+  .sidebar.mobile-open{transform:translateX(0)}
+  .sidebar-overlay{display:none}
+  .sidebar-overlay.show{display:block}
+  .main{padding:16px}
+  .stats-row{grid-template-columns:1fr 1fr;gap:10px}
+  .stat-num{font-size:26px}
+  .study-layout{grid-template-columns:1fr}
+  .study-topic-list{display:block}
+  .quiz-modes{grid-template-columns:1fr}
+  .retos-grid{grid-template-columns:1fr}
+  .fc-nav{gap:6px}
+  .retos-layout{grid-template-columns:1fr}
+  .prog-grid{grid-template-columns:1fr}
+  .dash-header{flex-direction:column}
+  .dash-xp-box{min-width:unset;width:100%}
+  .app-footer{padding:0 12px}
+  .page-title{font-size:20px}
+}
+@media(max-width:380px){
+  .stats-row{grid-template-columns:1fr 1fr}
+  .stat-num{font-size:22px}
+  .stat-lbl{font-size:9px}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<canvas id="starfield"></canvas>
+<div id="login-screen">
+  <div class="login-wrap">
+    <div class="login-logo">
+      <svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="lg_login_main" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#6dd5fa"/><stop offset="0.45" stop-color="#2196f3"/><stop offset="1" stop-color="#0a3d8f"/>
+          </linearGradient>
+          <linearGradient id="lg_login_hi" x1="0" y1="0" x2="1" y2="1">
+            <stop stop-color="rgba(255,255,255,0.55)"/><stop offset="1" stop-color="rgba(255,255,255,0)"/>
+          </linearGradient>
+        </defs>
+        <!-- Cloud base -->
+        <path d="M11 52C6 52 2 48 2 43c0-4 2.5-7.5 6.2-8.8C8 33.5 8 32.8 8 32c0-7.2 5.8-13 13-13 2.3 0 4.5.6 6.4 1.8C29.8 18.1 33.5 16 37.5 16 45 16 51 22 51 29.5c0 .5 0 1-.1 1.5C55 32 58 35.5 58 39.5 58 44.5 54 48.5 49 48.5H11z" fill="url(#lg_login_main)"/>
+        <!-- Cloud highlight top -->
+        <path d="M20 21c2.1-2.5 5.3-4 8.8-4 4.8 0 8.9 2.7 11 6.7" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        <path d="M37 16.5c2.2 0 4.3.6 6.1 1.7" stroke="rgba(255,255,255,0.35)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <!-- A letter (dominant, front) -->
+        <path d="M16 46 L30 20 L44 46" stroke="white" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <line x1="21" y1="38" x2="39" y2="38" stroke="white" stroke-width="3.2" stroke-linecap="round"/>
+        <!-- A letter inner highlight -->
+        <path d="M30 20 L24 34" stroke="rgba(255,255,255,0.45)" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+        <!-- Z letter (back, semi-transparent, bigger) -->
+        <path d="M18 24 L44 24 L18 44 L44 44" stroke="rgba(255,255,255,0.65)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <!-- Z top/bottom line highlights -->
+        <line x1="18" y1="24" x2="35" y2="24" stroke="rgba(255,255,255,0.3)" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="login-title">AZ de Azure</div>
+        <div class="login-sub">· Microsoft Azure Fundamentals · AZ-900</div>
+      </div>
+    </div>
+    <div class="login-card">
+      <h2>¡Bienvenido!</h2>
+      <p>Introduce tu nombre para acceder a tu progreso personal guardado en este dispositivo.</p>
+      <div class="login-input-wrap">
+        <div class="l-avatar" id="l-avatar">?</div>
+        <input class="login-input" id="login-name" type="text" placeholder="Tu nombre o apodo..." maxlength="24" oninput="updateLoginAvatar()" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="login-btn" onclick="doLogin()">Entrar →</button>
+      <div class="login-divider">o elige un perfil</div>
+      <div class="profiles-list" id="profiles-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- WARP OVERLAY -->
+<canvas id="warp-overlay"></canvas>
+
+<!-- TOPBAR -->
+<div class="topbar" id="topbar" style="display:none">
+  <button class="sidebar-toggle-btn" onclick="toggleSidebar()" title="Mostrar/ocultar menú">☰</button>
+  <div class="logo">
+    <svg width="34" height="34" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+      <defs>
+        <linearGradient id="lg_top" x1="0" y1="0" x2="34" y2="34" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#6dd5fa"/><stop offset="0.45" stop-color="#2196f3"/><stop offset="1" stop-color="#0a3d8f"/>
+        </linearGradient>
+      </defs>
+      <path d="M5.5 27C3 27 1 25 1 22.5c0-2.1 1.4-3.9 3.3-4.5C4.1 17.5 4 17 4 16.5 4 12.9 6.9 10 10.5 10c1.2 0 2.3.4 3.3 1C14.8 9.4 16.5 8.5 18.5 8.5c3.9 0 7 3.1 7 7 0 .3 0 .5-.1.8C27.7 17 29.5 18.8 29.5 21c0 3.3-2.7 6-6 6H5.5z" fill="url(#lg_top)"/>
+      <path d="M9.5 25.5 L17 12 L24.5 25.5" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <line x1="12" y1="21" x2="22" y2="21" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+      <path d="M11 14.5 L23 14.5 L11 23 L23 23" stroke="rgba(255,255,255,0.65)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    </svg>
+    <div class="logo-text">AZ de Azure<span>· AZ-900</span></div>
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="switchTab('dashboard')">Dashboard</button>
+    <button class="nav-tab" onclick="switchTab('study')">Estudiar</button>
+    <button class="nav-tab" onclick="switchTab('quiz')">Quiz</button>
+    <button class="nav-tab" onclick="switchTab('flashcards')">Flashcards</button>
+    <button class="nav-tab" onclick="switchTab('challenges')">Retos</button>
+    <button class="nav-tab" onclick="switchTab('progress')">Progreso</button>
+  </div>
+  <div class="topbar-right">
+    <div class="lang-toggle">
+      <button class="lang-btn active" onclick="setLang('es')">ES</button>
+      <button class="lang-btn" onclick="setLang('en')">EN</button>
+    </div>
+    <div class="xp-chip"><span class="xp-star">★</span><span id="xp-display">0 XP</span></div>
+    <div class="user-chip" onclick="logout()" title="Cerrar sesión">
+      <div class="uc-avatar" id="uc-avatar"></div>
+      <span class="uc-name" id="uc-name"></span>
+    </div>
+  </div>
+</div>
+
+<!-- SIDEBAR OVERLAY (mobile) -->
+<div class="sidebar-overlay" id="sb-overlay" onclick="closeMobileSidebar()"></div>
+
+<!-- APP BODY -->
+<div class="app-body" id="app-body" style="display:none">
+
+  <div class="sidebar" id="sidebar">
+    <div class="sb-inner" id="sb-inner"></div>
+  </div>
+
+  <div class="main" id="main-content">
+
+    <!-- DASHBOARD -->
+    <div id="tab-dashboard" class="section active">
+      <div class="dash-header">
+        <div class="dash-greeting">
+          <h1 id="dash-hi">¡Hola!</h1>
+          <p id="dash-sub">Continúa preparando el examen AZ-900 de Azure Fundamentals</p>
+        </div>
+        <div class="dash-xp-box">
+          <div class="dash-xp-top">
+            <span>Nivel <span id="d-lv">1</span> · <span id="d-xp">0 XP</span></span>
+            <span id="d-nxt" style="color:var(--t3)"></span>
+          </div>
+          <div class="dash-xp-track"><div class="dash-xp-fill" id="d-xp-fill" style="width:0%"></div></div>
+        </div>
+      </div>
+      <div class="stats-row">
+        <div class="stat-card c-blue"><div class="stat-card-glow"></div><div class="stat-accent" style="background:var(--a)"></div><div class="stat-num" id="dst-studied">0</div><div class="stat-lbl">Temas estudiados</div></div>
+        <div class="stat-card c-green"><div class="stat-card-glow"></div><div class="stat-accent" style="background:var(--ok)"></div><div class="stat-num" id="dst-correct">0</div><div class="stat-lbl">Resp. correctas</div></div>
+        <div class="stat-card c-warn"><div class="stat-card-glow"></div><div class="stat-accent" style="background:var(--warn)"></div><div class="stat-num" id="dst-streak">0</div><div class="stat-lbl">Racha actual</div></div>
+        <div class="stat-card c-purple"><div class="stat-card-glow"></div><div class="stat-accent" style="background:var(--a3)"></div><div class="stat-num" id="dst-xp">0</div><div class="stat-lbl">XP total</div></div>
+      </div>
+      <div id="dash-domains"></div>
+      <div id="dash-soon"></div>
+    </div>
+
+    <!-- STUDY -->
+    <div id="tab-study" class="section">
+      <div class="page-title">Estudiar</div>
+      <div class="page-sub">Selecciona un tema para ver la explicación completa</div>
+      <div class="study-layout">
+        <div class="study-topic-list" id="study-list"></div>
+        <div class="study-panel" id="study-panel">
+          <div class="sp-body"><div class="study-ph"><div class="ph-icon">📖</div><div class="ph-text">Elige un tema de la izquierda para comenzar</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="tab-quiz" class="section">
+      <div id="quiz-home">
+        <div class="page-title">Quiz de Práctica</div>
+        <div class="page-sub">Preguntas estilo examen oficial con explicaciones detalladas</div>
+        <div class="quiz-modes" id="quiz-modes-grid"></div>
+        <div style="text-align:center;margin-top:8px"><button class="btn primary" onclick="startQuiz()">Comenzar →</button></div>
+      </div>
+      <div id="quiz-play" style="display:none"></div>
+      <div id="quiz-results" style="display:none"></div>
+    </div>
+
+    <!-- FLASHCARDS -->
+    <div id="tab-flashcards" class="section">
+      <div class="page-title">Flashcards</div>
+      <div class="page-sub">Haz clic para voltear · marca como fácil para descartar</div>
+      <div class="fc-toolbar">
+        <select class="fc-select" id="fc-domain" onchange="initFC()">
+          <option value="all">Todos los dominios</option>
+          <option value="0">Conceptos Cloud</option>
+          <option value="1">Arquitectura y Servicios</option>
+          <option value="2">Gestión y Gobernanza</option>
+        </select>
+        <span class="fc-count" id="fc-count">0 / 0</span>
+      </div>
+      <div class="fc-area" onclick="flipFC()">
+        <div class="fc-inner" id="fc-inner">
+          <div class="fc-face fc-front"><div class="fc-label">CONCEPTO</div><div class="fc-q" id="fc-q"></div></div>
+          <div class="fc-face fc-back"><div class="fc-label">DEFINICIÓN</div><div class="fc-a" id="fc-a"></div></div>
+        </div>
+      </div>
+      <div class="fc-hint" id="fc-hint">Haz clic en la tarjeta para ver la respuesta</div>
+      <div class="fc-nav" style="margin-top:14px">
+        <button class="btn" onclick="fcMove(-1)">← Anterior</button>
+        <div class="fc-actions">
+          <button class="btn danger" onclick="fcMark('hard')">Difícil</button>
+          <button class="btn ok" onclick="fcMark('easy')">Fácil ✓</button>
+        </div>
+        <button class="btn" onclick="fcMove(1)">Siguiente →</button>
+      </div>
+    </div>
+
+    <!-- CHALLENGES -->
+    <div id="tab-challenges" class="section">
+      <div id="challenges-home">
+        <div class="page-title">Retos</div>
+        <div class="page-sub">Pon a prueba tu conocimiento · gana XP · sube en el ranking</div>
+        <div class="retos-layout">
+          <div>
+            <div class="xp-panel">
+              <div class="xp-lv"><span>Nivel <span id="r-lv">1</span> · <span id="r-xp">0 XP</span></span><span id="r-nxt"></span></div>
+              <div class="xp-track"><div class="xp-fll" id="r-xp-fill" style="width:0%"></div></div>
+            </div>
+            <div class="retos-grid" id="retos-grid"></div>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div class="mini-panel">
+              <div class="mini-hd">Ranking<span class="hp">XP</span></div>
+              <div class="lb-row"><span class="lb-rank" style="color:gold">1</span><span class="lb-name">azuremaster_22</span><span class="lb-score">4820</span></div>
+              <div class="lb-row"><span class="lb-rank" style="color:silver">2</span><span class="lb-name">cloudninja_99</span><span class="lb-score">3540</span></div>
+              <div class="lb-row"><span class="lb-rank" style="color:#cd7f32">3</span><span class="lb-name">techguru_mx</span><span class="lb-score">2980</span></div>
+              <div class="lb-row"><span class="lb-rank" style="color:var(--t3)">4</span><span class="lb-name">azure_pro</span><span class="lb-score">1750</span></div>
+              <div class="lb-row lb-me"><span class="lb-rank" style="color:var(--a)">5</span><span class="lb-name" style="color:var(--a)" id="lb-myname">Tú</span><span class="lb-score" id="lb-my">0</span></div>
+            </div>
+            <div class="mini-panel" id="ach-panel"><div class="mini-hd">Logros</div></div>
+          </div>
+        </div>
+      </div>
+      <div id="challenge-active" style="display:none"></div>
+    </div>
+
+    <!-- PROGRESS -->
+    <div id="tab-progress" class="section">
+      <div class="page-title">Tu Progreso</div>
+      <div class="page-sub">Vista detallada de tu preparación para el AZ-900</div>
+      <div class="stats-row" style="margin-bottom:20px">
+        <div class="stat-card c-blue"><div class="stat-card-glow"></div><div class="stat-accent" style="background:var(--a)"></div><div class="stat-num" id="pr-studied">0</div><div class="stat-lbl">Temas vistos</div></div>
+        <div class="stat-card c-green"><div class="stat-card-glow"></div><div class="stat-accent" style="background:var(--ok)"></div><div class="stat-num" id="pr-correct">0</div><div class="stat-lbl">Correctas</div></div>
+        <div class="stat-card c-warn"><div class="stat-card-glow"></div><div class="stat-accent" style="background:var(--warn)"></div><div class="stat-num" id="pr-streak">0</div><div class="stat-lbl">Racha</div></div>
+        <div class="stat-card c-purple"><div class="stat-card-glow"></div><div class="stat-accent" style="background:var(--a3)"></div><div class="stat-num" id="pr-xp">0</div><div class="stat-lbl">XP total</div></div>
+      </div>
+      <div class="prog-grid">
+        <div class="full-panel"><div class="fp-title">Progreso por dominio</div><div id="prog-bars"></div></div>
+        <div class="full-panel"><div class="fp-title">Estadísticas de quiz</div><div id="prog-stats"></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<div class="app-footer" id="app-footer" style="display:none">
+  <div class="footer-version"><div class="footer-dot"></div>v1.0.3 beta · AZ-900 Study App</div>
+  <div class="footer-right">Microsoft Azure Fundamentals · 2026</div>
+</div>
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav">
+  <button class="mn-btn active" id="mn-dashboard" onclick="switchTab('dashboard')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9.5L12 3l9 6.5V21H3V9.5z"/><path d="M9 21V12h6v9"/></svg>
+    <span class="mn-label">Inicio</span>
+  </button>
+  <button class="mn-btn" id="mn-study" onclick="switchTab('study')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    <span class="mn-label">Estudiar</span>
+  </button>
+  <button class="mn-btn" id="mn-quiz" onclick="switchTab('quiz')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    <span class="mn-label">Quiz</span>
+  </button>
+  <button class="mn-btn" id="mn-flashcards" onclick="switchTab('flashcards')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+    <span class="mn-label">Cards</span>
+  </button>
+  <button class="mn-btn" id="mn-challenges" onclick="switchTab('challenges')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>
+    <span class="mn-label">Retos</span>
+  </button>
+  <button class="mn-btn" id="mn-progress" onclick="switchTab('progress')">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 20h20M6 20V10M10 20V4M14 20V14M18 20V8"/></svg>
+    <span class="mn-label">Progreso</span>
+  </button>
+</div>
+
+<!-- ACHIEVEMENT MODAL -->
+<div class="ach-modal-overlay" id="ach-modal-overlay" onclick="closeAchModal(event)">
+  <div class="ach-modal" id="ach-modal">
+    <div class="ach-modal-hero">
+      <div class="ach-modal-big-icon" id="am-icon">🏆</div>
+      <div class="ach-modal-title" id="am-title">Logro desbloqueado</div>
+      <div class="ach-modal-desc" id="am-desc"></div>
+      <div class="ach-modal-xp" id="am-xp">★ +50 XP</div>
+    </div>
+    <div class="ach-modal-body">
+      <div class="ach-modal-share-label">Compartir este logro</div>
+      <div class="ach-modal-preview" id="am-preview"></div>
+      <div class="ach-modal-btns">
+        <button class="btn-linkedin" onclick="shareLinkedIn()" id="am-li-btn">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+          Compartir en LinkedIn
+        </button>
+        <button class="btn-close-ach" onclick="closeAchModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"><div id="t-icon">🏆</div><div><div class="t-title" id="t-title"></div><div class="t-sub" id="t-sub"></div></div></div>
+
+<script>
+// ══ DOMAINS & TOPICS ══
+const DOMAINS = [
+  {name:"Conceptos Cloud",weight:"25–30%",color:"var(--a)",cls:"dc-blue",pill:"pill-blue"},
+  {name:"Arquitectura y Servicios Azure",weight:"35–40%",color:"var(--a2)",cls:"dc-cyan",pill:"pill-cyan"},
+  {name:"Gestión y Gobernanza Azure",weight:"30–35%",color:"var(--ok)",cls:"dc-green",pill:"pill-green"}
+];
+const TOPICS = [
+  {d:0,name:"Qué es el Cloud Computing",key:"cloud_computing"},
+  {d:0,name:"Modelo de Responsabilidad Compartida",key:"shared_responsibility"},
+  {d:0,name:"Modelos de Nube",key:"cloud_models"},
+  {d:0,name:"Modelo de Consumo",key:"consumption_model"},
+  {d:0,name:"Computación Serverless",key:"serverless"},
+  {d:0,name:"Alta Disponibilidad y Escalabilidad",key:"ha_scalability"},
+  {d:0,name:"Fiabilidad y Predictibilidad",key:"reliability"},
+  {d:0,name:"IaaS, PaaS y SaaS",key:"service_types"},
+  {d:1,name:"Regiones y Zonas de Disponibilidad",key:"regions_az"},
+  {d:1,name:"Grupos de Recursos y Suscripciones",key:"resource_groups"},
+  {d:1,name:"Grupos de Administración",key:"mgmt_groups"},
+  {d:1,name:"Máquinas Virtuales de Azure",key:"vms"},
+  {d:1,name:"Contenedores y Azure Functions",key:"containers"},
+  {d:1,name:"Redes Virtuales de Azure",key:"vnets"},
+  {d:1,name:"Azure DNS y ExpressRoute",key:"dns_expressroute"},
+  {d:1,name:"Servicios de Almacenamiento",key:"storage"},
+  {d:1,name:"Niveles y Redundancia",key:"storage_tiers"},
+  {d:1,name:"Herramientas de Migración",key:"data_migration"},
+  {d:1,name:"Microsoft Entra ID",key:"entra_id"},
+  {d:1,name:"Métodos de Autenticación",key:"authentication"},
+  {d:1,name:"RBAC y Zero Trust",key:"rbac"},
+  {d:1,name:"Microsoft Defender for Cloud",key:"defender"},
+  {d:2,name:"Gestión de Costes",key:"cost_management"},
+  {d:2,name:"Precios y Calculadora Azure",key:"pricing"},
+  {d:2,name:"Etiquetas y Organización",key:"tags"},
+  {d:2,name:"Microsoft Purview",key:"purview"},
+  {d:2,name:"Azure Policy",key:"azure_policy"},
+  {d:2,name:"Bloqueos de Recursos",key:"resource_locks"},
+  {d:2,name:"Azure Portal y Cloud Shell",key:"portal"},
+  {d:2,name:"Azure Arc",key:"azure_arc"},
+  {d:2,name:"ARM Templates e IaC",key:"arm_templates"},
+  {d:2,name:"Azure Advisor",key:"advisor"},
+  {d:2,name:"Azure Monitor y Service Health",key:"monitor"}
+];
+
+// ══ EXPLANATIONS ══
+const EXPL = {
+cloud_computing:{title:"¿Qué es el Cloud Computing?",domain:"Conceptos Cloud",body:`<h3>Definición</h3><p>El cloud computing es la entrega de servicios de computación —servidores, almacenamiento, bases de datos, redes, software— a través de internet bajo demanda, con pago por uso.</p><h3>Características clave</h3><ul><li><strong>Autoservicio bajo demanda</strong> — provisiona recursos sin intervención humana</li><li><strong>Acceso por red</strong> — disponible desde cualquier dispositivo</li><li><strong>Agrupación de recursos</strong> — modelo multiinquilino</li><li><strong>Elasticidad rápida</strong> — escala según demanda</li><li><strong>Servicio medido</strong> — paga solo por lo que usas</li></ul><h3>Cloud vs On-Premises</h3><div class="kv"><div class="k">On-Premises</div><div class="v">Compras hardware (CAPEX), gestionas todo, capacidad fija</div><div class="k">Cloud</div><div class="v">Pago por uso (OPEX), el proveedor gestiona infraestructura, escala al instante</div></div><div class="tip-box"><div class="tip-hd">Consejo de examen</div>El AZ-900 suele preguntar CAPEX (inversión inicial en hardware) vs OPEX (costes de uso continuo). Cloud = modelo OPEX.</div>`},
+shared_responsibility:{title:"Modelo de Responsabilidad Compartida",domain:"Conceptos Cloud",body:`<h3>Concepto principal</h3><p>Las responsabilidades de seguridad se <strong>comparten</strong> entre Microsoft y el cliente. El reparto depende del modelo de servicio.</p><table class="comparison-table"><tr><th>Responsabilidad</th><th>On-Prem</th><th>IaaS</th><th>PaaS</th><th>SaaS</th></tr><tr><td>Datacenter físico</td><td>Tú</td><td>Microsoft</td><td>Microsoft</td><td>Microsoft</td></tr><tr><td>Red / hosts</td><td>Tú</td><td>Microsoft</td><td>Microsoft</td><td>Microsoft</td></tr><tr><td>Sistema operativo</td><td>Tú</td><td>Tú</td><td>Microsoft</td><td>Microsoft</td></tr><tr><td>Aplicaciones</td><td>Tú</td><td>Tú</td><td>Compartida</td><td>Microsoft</td></tr><tr><td>Datos e identidades</td><td>Tú</td><td>Tú</td><td>Tú</td><td>Tú</td></tr></table><div class="tip-box"><div class="tip-hd">Consejo de examen</div>El cliente es <strong>siempre</strong> responsable de sus datos e identidades, sin importar el modelo. Microsoft siempre gestiona la infraestructura física.</div>`},
+cloud_models:{title:"Modelos de Nube",domain:"Conceptos Cloud",body:`<h3>Tres modelos de despliegue</h3><div class="kv"><div class="k">Nube Pública</div><div class="v">Gestionada por Azure/AWS/GCP. Disponible para cualquiera. Sin hardware local. La más económica.</div><div class="k">Nube Privada</div><div class="v">Usada exclusivamente por una organización. Mayor control, mayor coste.</div><div class="k">Nube Híbrida</div><div class="v">Combina pública y privada. Usa la nube para picos, mantén datos sensibles on-premises.</div></div><h3>Multi-Cloud</h3><p>Usar varios proveedores cloud simultáneamente (Azure + AWS). Evita dependencia de un único proveedor.</p><div class="tip-box"><div class="tip-hd">Consejo de examen</div><strong>Híbrida</strong> = control on-premises + flexibilidad cloud. <strong>Privada</strong> = normativa exige control total. Memoriza estos casos de uso.</div>`},
+consumption_model:{title:"Modelo de Consumo",domain:"Conceptos Cloud",body:`<h3>Pago por uso</h3><p>En la nube solo pagas por los recursos que usas. Sin costes iniciales y sin capacidad desperdiciada.</p><h3>CAPEX vs OPEX</h3><div class="kv"><div class="k">CAPEX</div><div class="v">Gasto de Capital — inversión inicial en hardware físico. Coste fijo. Datacenters on-premises.</div><div class="k">OPEX</div><div class="v">Gasto Operacional — pago por uso. Coste variable. Cloud computing.</div></div><h3>Ventajas</h3><ul><li>Sin costes iniciales de hardware</li><li>Pagas solo por lo que necesitas</li><li>Dejas de pagar al eliminar recursos</li><li>Costes predecibles por recurso</li></ul><div class="tip-box"><div class="tip-hd">Consejo de examen</div>El cloud convierte CAPEX en OPEX. Este es el principal beneficio financiero de migrar a la nube.</div>`},
+serverless:{title:"Computación Serverless",domain:"Conceptos Cloud",body:`<h3>¿Qué es Serverless?</h3><p><strong>Serverless</strong> no significa que no haya servidores — significa que tú no los gestionas. El proveedor cloud aprovisiona, escala y gestiona todo automáticamente.</p><h3>Servicios clave de Azure</h3><div class="kv"><div class="k">Azure Functions</div><div class="v">Código basado en eventos. Pago por ejecución. Escala a cero cuando no hay actividad.</div><div class="k">Azure Logic Apps</div><div class="v">Automatización visual de flujos de trabajo. Sin código.</div><div class="k">Azure Event Grid</div><div class="v">Enrutamiento de eventos para arquitecturas reactivas.</div></div><h3>Características</h3><ul><li>Basado en eventos — ejecuta código en respuesta a disparadores</li><li>Escalado automático — de cero a gran escala al instante</li><li>Sin gestión de servidores — sin parchear SO</li><li>Eficiente en costes — solo pagas cuando el código se ejecuta</li></ul>`},
+ha_scalability:{title:"Alta Disponibilidad y Escalabilidad",domain:"Conceptos Cloud",body:`<h3>Alta Disponibilidad (HA)</h3><p>Capacidad de mantenerse operativo con el <strong>mínimo tiempo de inactividad</strong>. Medida por el porcentaje del SLA.</p><div class="kv"><div class="k">SLA 99%</div><div class="v">~87,6 horas de inactividad/año</div><div class="k">SLA 99,9%</div><div class="v">~8,76 horas/año</div><div class="k">SLA 99,99%</div><div class="v">~52,6 minutos/año</div></div><h3>Tipos de escalabilidad</h3><div class="kv"><div class="k">Vertical (Scale Up)</div><div class="v">Añadir más CPU/RAM a recursos existentes. Tiene límites físicos.</div><div class="k">Horizontal (Scale Out)</div><div class="v">Añadir más instancias. Prácticamente ilimitado en Azure.</div></div><h3>Elasticidad</h3><p>Escalado automático que se adapta a la demanda en tiempo real — escala hacia afuera en picos y hacia dentro en baja carga.</p><div class="tip-box"><div class="tip-hd">Consejo de examen</div>HA = mantenerse activo. Escalabilidad = manejar más carga. Elasticidad = escalado automático. Son tres conceptos distintos.</div>`},
+reliability:{title:"Fiabilidad y Predictibilidad",domain:"Conceptos Cloud",body:`<h3>Fiabilidad</h3><p>Capacidad de un sistema para <strong>recuperarse de fallos</strong> y seguir funcionando. Azure usa redundancia para eliminar puntos únicos de fallo.</p><h3>Predictibilidad</h3><div class="kv"><div class="k">Rendimiento predecible</div><div class="v">Azure escala automáticamente para mantener experiencia de usuario consistente.</div><div class="k">Coste predecible</div><div class="v">Azure Cost Management + Calculadora de precios para estimar gastos futuros.</div></div><h3>Conceptos relacionados</h3><ul><li><strong>Resiliencia</strong> — recuperarse de un fallo y volver al estado completo</li><li><strong>Redundancia</strong> — múltiples copias para sobrevivir fallos</li><li><strong>Geodistribución</strong> — despliegue en múltiples regiones para DR</li></ul>`},
+service_types:{title:"IaaS, PaaS y SaaS",domain:"Conceptos Cloud",body:`<h3>Modelos de servicio cloud</h3><table class="comparison-table"><tr><th>Modelo</th><th>Tú gestionas</th><th>El proveedor gestiona</th><th>Ejemplo Azure</th></tr><tr><td><strong>IaaS</strong></td><td>SO, middleware, apps, datos</td><td>Hardware, red, datacenter</td><td>Azure VMs, Virtual Network</td></tr><tr><td><strong>PaaS</strong></td><td>Aplicaciones, datos</td><td>SO, runtime, infraestructura</td><td>App Service, Azure SQL</td></tr><tr><td><strong>SaaS</strong></td><td>Solo configuración</td><td>Todo lo demás</td><td>Microsoft 365, Dynamics</td></tr></table><h3>Cuándo usar cada uno</h3><ul><li><strong>IaaS</strong> — migraciones lift-and-shift, control total del SO</li><li><strong>PaaS</strong> — desarrollador centrado en el código, sin gestionar infraestructura</li><li><strong>SaaS</strong> — software listo para usar, mínima carga para TI</li></ul><div class="tip-box"><div class="tip-hd">Consejo de examen</div>"Desplegar VMs" = IaaS. "App Service" = PaaS. "Microsoft Teams" = SaaS. Estos ejemplos son frecuentes en el examen.</div>`},
+regions_az:{title:"Regiones y Zonas de Disponibilidad",domain:"Arquitectura y Servicios Azure",body:`<h3>Regiones de Azure</h3><p>Un <strong>área geográfica</strong> con uno o más datacenters. Más de 60 regiones en todo el mundo para cumplir residencia de datos y baja latencia.</p><h3>Pares de regiones</h3><p>Cada región está <strong>emparejada</strong> con otra dentro de la misma geografía. Beneficios:</p><ul><li>Actualizaciones desplegadas en una región a la vez</li><li>GRS replica automáticamente a la región emparejada</li><li>Una región del par tiene prioridad durante interrupciones</li></ul><h3>Zonas de Disponibilidad (ZD)</h3><p>Datacenters físicamente <strong>separados</strong> dentro de una región, con energía, refrigeración y redes independientes.</p><div class="kv"><div class="k">Servicios zonales</div><div class="v">Asignados a una zona específica (una VM concreta)</div><div class="k">Zona-redundante</div><div class="v">Replicado automáticamente entre zonas (ZRS)</div></div><div class="tip-box"><div class="tip-hd">Consejo de examen</div>ZD = protege contra fallos de datacenter. Pares de regiones = protege contra fallo de región completa. Niveles de redundancia distintos.</div>`},
+resource_groups:{title:"Grupos de Recursos y Suscripciones",domain:"Arquitectura y Servicios Azure",body:`<h3>Jerarquía de Azure</h3><p>Grupos de administración → Suscripciones → Grupos de recursos → Recursos</p><h3>Grupos de recursos</h3><p><strong>Contenedor lógico</strong> para recursos Azure relacionados.</p><ul><li>Los recursos pueden estar en múltiples regiones</li><li>Eliminar el grupo elimina TODOS los recursos</li><li>Gestión del ciclo de vida como unidad</li><li>Aplicar RBAC a nivel de grupo</li></ul><h3>Suscripciones</h3><p>Límite de <strong>facturación y confianza</strong>. Una cuenta puede tener múltiples suscripciones.</p><div class="kv"><div class="k">Límite de facturación</div><div class="v">Cada suscripción genera su propio informe</div><div class="k">Control de acceso</div><div class="v">Diferentes políticas RBAC por suscripción</div></div><div class="tip-box"><div class="tip-hd">Consejo de examen</div>Recursos → Grupos de recursos → Suscripciones → Grupos de administración. Aprende la dirección de la jerarquía.</div>`},
+mgmt_groups:{title:"Grupos de Administración",domain:"Arquitectura y Servicios Azure",body:`<h3>¿Qué son?</h3><p>Nivel <strong>por encima de las suscripciones</strong> para organizar y gobernar múltiples suscripciones. Las políticas y RBAC se heredan hacia abajo.</p><h3>Datos clave</h3><ul><li>Hasta <strong>10.000</strong> grupos de administración por directorio</li><li>Hasta <strong>6 niveles de profundidad</strong> (sin contar el raíz)</li><li><strong>Grupo raíz</strong> en la cima — todas las suscripciones dependen de él</li><li>Azure Policy a nivel de grupo se aplica a TODAS las suscripciones</li></ul><div class="tip-box"><div class="tip-hd">Consejo de examen</div>Se usan cuando una empresa tiene MUCHAS suscripciones y necesita gobernanza consistente en todas ellas.</div>`},
+vms:{title:"Máquinas Virtuales de Azure",domain:"Arquitectura y Servicios Azure",body:`<h3>Azure Virtual Machines</h3><p>Recursos <strong>IaaS</strong> con control total sobre el SO, software y configuración. Ideales para migraciones lift-and-shift.</p><h3>Opciones</h3><div class="kv"><div class="k">Azure VMs</div><div class="v">VMs estándar — control total del SO</div><div class="k">VM Scale Sets</div><div class="v">Grupo de VMs idénticas con autoescalado y LB. Para alta disponibilidad.</div><div class="k">Availability Sets</div><div class="v">Agrupación entre dominios de fallo y actualización. Protege contra fallos de hardware y mantenimiento.</div><div class="k">Azure Virtual Desktop</div><div class="v">Escritorio como servicio. Windows en la nube desde cualquier dispositivo.</div></div><div class="tip-box"><div class="tip-hd">Consejo de examen</div>Scale Sets = autoescalado. Availability Sets = HA dentro de un datacenter. Se confunden frecuentemente en el examen.</div>`},
+containers:{title:"Contenedores y Azure Functions",domain:"Arquitectura y Servicios Azure",body:`<h3>Contenedores vs VMs</h3><p>Los contenedores <strong>comparten el SO del host</strong>, son más ligeros y arrancan más rápido que las VMs.</p><h3>Servicios de contenedores</h3><div class="kv"><div class="k">ACI (Container Instances)</div><div class="v">Forma más rápida de ejecutar contenedores. Sin gestión de VMs. Para cargas simples.</div><div class="k">AKS (Kubernetes Service)</div><div class="v">Kubernetes gestionado. Autoescalado, actualizaciones progresivas, autocorrección.</div><div class="k">Azure Container Apps</div><div class="v">Contenedores serverless — sin complejidad de Kubernetes.</div></div><h3>Azure Functions</h3><p>Cómputo serverless — ejecuta código en respuesta a eventos. Pago por ejecución. Escala a cero.</p><div class="tip-box"><div class="tip-hd">Consejo de examen</div>ACI = contenedores simples. AKS = orquestación de contenedores. Azure Functions = código serverless. Cada uno tiene diferente nivel de complejidad.</div>`},
+vnets:{title:"Redes Virtuales de Azure",domain:"Arquitectura y Servicios Azure",body:`<h3>VNets</h3><p>Bloque fundamental de red en Azure. Permiten comunicación segura entre recursos Azure, internet y redes on-premises.</p><h3>Capacidades clave</h3><ul><li><strong>Subredes</strong> — divide la VNet en segmentos</li><li><strong>VNet Peering</strong> — conecta VNets por backbone de Microsoft (no internet público)</li><li><strong>VPN Gateway</strong> — túnel cifrado a on-premises sobre internet</li><li><strong>NSG</strong> — reglas de firewall para tráfico entrante/saliente</li></ul><h3>Endpoints</h3><div class="kv"><div class="k">Endpoint público</div><div class="v">Accesible por internet via IP pública</div><div class="k">Endpoint privado</div><div class="v">Solo dentro de VNet via IP privada — el tráfico nunca sale de Azure</div></div>`},
+dns_expressroute:{title:"Azure DNS y ExpressRoute",domain:"Arquitectura y Servicios Azure",body:`<h3>Azure DNS</h3><p>Servicio de hospedaje para dominios DNS usando la infraestructura de Azure.</p><ul><li><strong>DNS público</strong> — resuelve dominios orientados a internet</li><li><strong>DNS privado</strong> — resuelve nombres dentro de una VNet</li></ul><h3>Opciones de conectividad</h3><div class="kv"><div class="k">VPN Gateway</div><div class="v">Túnel cifrado sobre internet público. Económico. Hasta ~10 Gbps.</div><div class="k">ExpressRoute</div><div class="v">Conexión privada dedicada vía proveedor de conectividad. NO usa internet público. Hasta 100 Gbps.</div></div><div class="tip-box"><div class="tip-hd">Consejo de examen</div>ExpressRoute = privado, NO usa internet. VPN Gateway = cifrado SOBRE internet. Esta distinción es pregunta habitual.</div>`},
+storage:{title:"Servicios de Almacenamiento de Azure",domain:"Arquitectura y Servicios Azure",body:`<h3>Servicios de almacenamiento</h3><div class="kv"><div class="k">Blob Storage</div><div class="v">Objetos no estructurados: imágenes, vídeos, logs, backups. Acceso REST.</div><div class="k">File Storage</div><div class="v">Recursos compartidos de archivos (SMB/NFS). Como una unidad de red.</div><div class="k">Queue Storage</div><div class="v">Mensajes entre componentes de apps. Hasta 64 KB/mensaje.</div><div class="k">Table Storage</div><div class="v">NoSQL clave-valor para datos estructurados no relacionales.</div><div class="k">Disk Storage</div><div class="v">Volúmenes de bloque para VMs. Como un disco duro.</div></div><h3>Herramientas de transferencia</h3><ul><li><strong>AzCopy</strong> — línea de comandos para copiar datos</li><li><strong>Storage Explorer</strong> — GUI para gestionar cuentas</li><li><strong>Azure File Sync</strong> — sincroniza servidores de archivos on-premises</li></ul>`},
+storage_tiers:{title:"Niveles y Redundancia de Almacenamiento",domain:"Arquitectura y Servicios Azure",body:`<h3>Niveles de acceso (Blob)</h3><table class="comparison-table"><tr><th>Nivel</th><th>Uso</th><th>Coste</th></tr><tr><td><span class="badge badge-blue">Hot</span></td><td>Acceso frecuente</td><td>Mayor almacenamiento, menor acceso</td></tr><tr><td><span class="badge badge-amber">Cool</span></td><td>Acceso esporádico (30+ días)</td><td>Menor almacenamiento, mayor acceso</td></tr><tr><td><span class="badge badge-red">Archive</span></td><td>Acceso raro (180+ días)</td><td>Mínimo almacenamiento, horas para rehidratar</td></tr></table><h3>Redundancia</h3><table class="comparison-table"><tr><th>Opción</th><th>Descripción</th></tr><tr><td><strong>LRS</strong></td><td>3 copias en el mismo datacenter</td></tr><tr><td><strong>ZRS</strong></td><td>3 copias en 3 Zonas de Disponibilidad</td></tr><tr><td><strong>GRS</strong></td><td>LRS + 3 copias en región emparejada</td></tr><tr><td><strong>GZRS</strong></td><td>ZRS primaria + LRS en región emparejada</td></tr></table><div class="tip-box"><div class="tip-hd">Consejo de examen</div>LRS = más barato, un datacenter. GRS = protege desastres regionales. Conoce el equilibrio coste/protección.</div>`},
+data_migration:{title:"Herramientas de Migración de Datos",domain:"Arquitectura y Servicios Azure",body:`<h3>Migración online</h3><div class="kv"><div class="k">Azure Migrate</div><div class="v">Centro de control para descubrir, evaluar y migrar servidores, BD y apps a Azure</div><div class="k">Database Migration Service</div><div class="v">Migra BD on-premises a Azure SQL, Cosmos DB, etc.</div></div><h3>Migración offline/física</h3><div class="kv"><div class="k">Azure Data Box</div><div class="v">Dispositivo físico (hasta 80 TB). Microsoft te lo envía, cargas datos, lo devuelves. Ideal cuando el ancho de banda es insuficiente.</div><div class="k">Data Box Disk</div><div class="v">Hasta 8 TB por disco, hasta 5 discos (40 TB total)</div><div class="k">Data Box Heavy</div><div class="v">Para petabytes — hasta 1 Petabyte</div></div><div class="tip-box"><div class="tip-hd">Consejo de examen</div>Datos masivos con red lenta = <strong>Azure Data Box</strong>. Siempre.</div>`},
+entra_id:{title:"Microsoft Entra ID (antes Azure AD)",domain:"Arquitectura y Servicios Azure",body:`<h3>¿Qué es?</h3><p>Servicio de <strong>gestión de identidades y acceso (IAM)</strong> en la nube de Microsoft. Gestiona usuarios, grupos y acceso a aplicaciones.</p><h3>Funciones principales</h3><ul><li><strong>Autenticación</strong> — verifica quién eres</li><li><strong>Autorización</strong> — controla a qué accedes (RBAC, Acceso condicional)</li><li><strong>SSO</strong> — un login para múltiples apps</li><li><strong>B2B/B2C</strong> — identidad externa y de cliente</li></ul><h3>Entra ID vs AD on-premises</h3><div class="kv"><div class="k">Entra ID</div><div class="v">Nube, HTTP/HTTPS, estructura plana, apps web/SaaS</div><div class="k">AD DS on-premises</div><div class="v">Local, Kerberos/LDAP, jerárquico, dispositivos de dominio</div></div>`},
+authentication:{title:"Métodos de Autenticación",domain:"Arquitectura y Servicios Azure",body:`<h3>Métodos</h3><div class="kv"><div class="k">SSO</div><div class="v">Un solo inicio de sesión para múltiples apps. Reduce fatiga de contraseñas.</div><div class="k">MFA</div><div class="v">Algo que sabes + algo que tienes + algo que eres. Reduce drásticamente el compromiso de cuentas.</div><div class="k">Sin contraseña</div><div class="v">Windows Hello, FIDO2, Microsoft Authenticator. La opción más segura.</div></div><h3>Acceso Condicional</h3><p>Políticas <strong>si-entonces</strong> antes de conceder acceso:</p><ul><li>Si usuario fuera de red corporativa → exigir MFA</li><li>Si dispositivo no cumple requisitos → bloquear</li><li>Si riesgo de login alto → forzar restablecimiento</li></ul><h3>Identidades externas</h3><ul><li><strong>B2B</strong> — socios externos colaboran con su propia identidad</li><li><strong>B2C</strong> — clientes se autentican con Google/Facebook en tus apps</li></ul>`},
+rbac:{title:"RBAC y Zero Trust",domain:"Arquitectura y Servicios Azure",body:`<h3>RBAC</h3><p>Concede acceso a recursos Azure basándose en <strong>roles</strong> asignados a usuarios, grupos o entidades de servicio.</p><div class="kv"><div class="k">Propietario</div><div class="v">Acceso completo + gestión de accesos para otros</div><div class="k">Colaborador</div><div class="v">Crea y gestiona recursos, no puede gestionar accesos</div><div class="k">Lector</div><div class="v">Solo visualización, sin cambios</div></div><h3>Modelo Zero Trust</h3><p><strong>"Nunca confíes, siempre verifica."</strong></p><ul><li>Verificar explícitamente — autenticar siempre en base a todos los datos disponibles</li><li>Mínimo privilegio — acceso Justo a Tiempo y Suficiente</li><li>Asumir brechas — minimizar radio de explosión</li></ul><h3>Defensa en profundidad</h3><p>Capas: Física → Perímetro → Red → Cómputo → Aplicación → Datos.</p>`},
+defender:{title:"Microsoft Defender for Cloud",domain:"Arquitectura y Servicios Azure",body:`<h3>¿Qué es?</h3><p>Servicio de <strong>CSPM y protección de cargas de trabajo</strong>. Evalúa continuamente entornos Azure, híbridos y multinube.</p><h3>Tres áreas principales</h3><div class="kv"><div class="k">Puntuación segura</div><div class="v">Métrica de postura de seguridad (0-100%). Acciones para mejorar.</div><div class="k">Recomendaciones</div><div class="v">Acciones específicas para reducir superficie de ataque</div><div class="k">Protección contra amenazas</div><div class="v">Detecta y responde a amenazas en VMs, contenedores, bases de datos</div></div><h3>Cobertura</h3><ul><li>Recursos Azure (VMs, App Service, SQL, Storage)</li><li>Servidores on-premises (vía Azure Arc)</li><li>Otras nubes (AWS, GCP)</li></ul>`},
+cost_management:{title:"Gestión de Costes en Azure",domain:"Gestión y Gobernanza Azure",body:`<h3>Factores que afectan al coste</h3><ul><li><strong>Tipo de recurso</strong> — diferentes servicios, diferentes precios</li><li><strong>Región</strong> — mismo servicio, diferente coste por región</li><li><strong>Consumo</strong> — horas, GB, transacciones usadas</li><li><strong>Reservado vs PAYG</strong> — reservar 1-3 años ahorra hasta 72%</li><li><strong>Azure Hybrid Benefit</strong> — usa licencias Windows/SQL existentes</li></ul><h3>Azure Cost Management + Billing</h3><ul><li>Ver y analizar costes por recurso, grupo, suscripción o etiqueta</li><li>Definir <strong>presupuestos</strong> con alertas al superar umbrales</li><li>Exportar datos de facturación para análisis</li></ul><div class="tip-box"><div class="tip-hd">Consejo de examen</div>El número de empleados NO afecta a los costes de Azure. Factores clave: tipo de recurso, consumo y región.</div>`},
+pricing:{title:"Precios y Calculadora de Azure",domain:"Gestión y Gobernanza Azure",body:`<h3>Calculadora de precios</h3><p>Herramienta web para <strong>estimar el coste mensual</strong> antes de desplegar. Configura tipo, región, nivel y uso.</p><h3>Calculadora TCO</h3><p>Estima el ahorro al migrar de on-premises a Azure. Compara costes on-prem (hardware, software, energía) vs Azure.</p><h3>Modelos de precios</h3><div class="kv"><div class="k">Pago por uso</div><div class="v">Sin compromiso. Máxima flexibilidad, mayor coste unitario.</div><div class="k">Instancias reservadas</div><div class="v">1 o 3 años. Hasta 72% de descuento.</div><div class="k">Precios Spot</div><div class="v">Capacidad excedente con grandes descuentos. Puede interrumpirse.</div><div class="k">Nivel gratuito</div><div class="v">Servicios siempre gratuitos. Cuentas nuevas: $200 de crédito 30 días.</div></div>`},
+tags:{title:"Etiquetas y Organización de Recursos",domain:"Gestión y Gobernanza Azure",body:`<h3>¿Qué son las etiquetas?</h3><p>Pares <strong>nombre-valor de metadatos</strong> aplicados a recursos Azure. Ejemplo: <code>Entorno: Producción</code>, <code>Dpto: Finanzas</code></p><h3>Usos</h3><ul><li><strong>Seguimiento de costes</strong> — filtra en Azure Cost Management</li><li><strong>Operaciones</strong> — identifica por entorno (prod/dev/test)</li><li><strong>Automatización</strong> — desencadena acciones por valor de etiqueta</li></ul><h3>Limitaciones</h3><ul><li>Las etiquetas <strong>NO se heredan</strong> en recursos secundarios</li><li>Máximo 50 pares por recurso</li><li>Pueden aplicarse obligatoriamente con Azure Policy</li></ul><div class="tip-box"><div class="tip-hd">Consejo de examen</div>Etiquetas = organización y facturación, NO control de acceso de seguridad. La seguridad es RBAC.</div>`},
+purview:{title:"Microsoft Purview",domain:"Gestión y Gobernanza Azure",body:`<h3>¿Qué es?</h3><p>Servicio unificado de <strong>gobernanza de datos</strong>. Descubre, clasifica y gestiona datos en entornos on-premises, multinube y SaaS.</p><h3>Capacidades principales</h3><div class="kv"><div class="k">Mapa de datos</div><div class="v">Descubrimiento y clasificación automatizada</div><div class="k">Catálogo de datos</div><div class="v">Portal de búsqueda para analistas</div><div class="k">Protección de información</div><div class="v">Etiquetas de sensibilidad, políticas DLP</div><div class="k">Linaje de datos</div><div class="v">Origen y flujo de datos por los sistemas</div></div><h3>Cumplimiento</h3><ul><li>Registros de auditoría e informes de cumplimiento</li><li>Soporte GDPR, HIPAA, ISO</li></ul>`},
+azure_policy:{title:"Azure Policy",domain:"Gestión y Gobernanza Azure",body:`<h3>¿Qué es?</h3><p>Servicio que crea, asigna y gestiona <strong>definiciones de política</strong> para aplicar reglas sobre recursos Azure y garantizar cumplimiento.</p><h3>Cómo funciona</h3><ul><li>Define una política (ej. "Todos los recursos deben tener etiqueta")</li><li>Asigna a un ámbito (grupo mgmt, suscripción, grupo recursos)</li><li>Azure evalúa todos los recursos</li><li>Recursos no conformes se marcan o bloquean</li></ul><h3>Efectos</h3><div class="kv"><div class="k">Deny</div><div class="v">Bloquea la creación si viola la política</div><div class="k">Audit</div><div class="v">Registra no conformes pero los permite</div><div class="k">Append</div><div class="v">Añade campos (ej. forzar una etiqueta)</div><div class="k">DeployIfNotExists</div><div class="v">Despliega un recurso si no existe</div></div><div class="tip-box"><div class="tip-hd">Consejo de examen</div>Azure Policy = gobernanza y cumplimiento. NO gestiona el acceso (eso es RBAC).</div>`},
+resource_locks:{title:"Bloqueos de Recursos",domain:"Gestión y Gobernanza Azure",body:`<h3>¿Qué son?</h3><p>Previenen la eliminación o modificación <strong>accidental</strong> de recursos críticos, independientemente de los permisos RBAC.</p><h3>Tipos de bloqueo</h3><div class="kv"><div class="k">CanNotDelete</div><div class="v">Se puede leer y modificar, pero NO eliminar</div><div class="k">ReadOnly</div><div class="v">Solo lectura — sin modificaciones ni eliminaciones</div></div><h3>Herencia</h3><ul><li>Los bloqueos se <strong>heredan</strong> en todos los recursos secundarios</li><li>Bloqueo en grupo de recursos → aplica a todos sus recursos</li><li>Se necesitan permisos de Propietario para crear/eliminar bloqueos</li></ul><div class="tip-box"><div class="tip-hd">Consejo de examen</div>Los bloqueos anulan RBAC. Incluso un Propietario debe eliminar el bloqueo antes de borrar el recurso. Pregunta trampa habitual.</div>`},
+portal:{title:"Azure Portal y Cloud Shell",domain:"Gestión y Gobernanza Azure",body:`<h3>Azure Portal</h3><p>Consola web unificada en <strong>portal.azure.com</strong>. Interfaz gráfica para crear, configurar y monitorizar todos los recursos Azure.</p><h3>Azure Cloud Shell</h3><p>Shell interactivo <strong>integrado en el navegador</strong>. Sin instalación local.</p><div class="kv"><div class="k">Azure CLI</div><div class="v">Comandos <code>az</code>. Multiplataforma. Ideal para scripts con Bash.</div><div class="k">Azure PowerShell</div><div class="v">Cmdlets <code>Get-Az*</code>, <code>New-Az*</code>. Preferido por administradores de Windows.</div></div><h3>Aplicación móvil</h3><p>Monitoriza y gestiona recursos desde iOS y Android. Compatible con Cloud Shell.</p>`},
+azure_arc:{title:"Azure Arc",domain:"Gestión y Gobernanza Azure",body:`<h3>¿Qué es?</h3><p>Extiende las capacidades de gestión de Azure a recursos que se ejecutan <strong>fuera de Azure</strong>: on-premises, otras nubes y edge.</p><h3>¿Qué gestiona?</h3><ul><li>Servidores Windows y Linux (on-premises u otras nubes)</li><li>Clústeres Kubernetes (cualquier entorno)</li><li>Servicios de datos Azure en cualquier lugar</li><li>VMs en VMware vSphere o Azure Stack HCI</li></ul><h3>Ventajas</h3><ul><li>Panel único desde el portal de Azure</li><li>Aplicar Azure Policy a recursos no Azure</li><li>Azure Monitor para observabilidad unificada</li><li>RBAC en servidores on-premises</li></ul><div class="tip-box"><div class="tip-hd">Consejo de examen</div>Azure Arc = llevar Azure (Policy, Monitor, RBAC) a entornos híbridos y multinube.</div>`},
+arm_templates:{title:"ARM Templates e IaC",domain:"Gestión y Gobernanza Azure",body:`<h3>Infraestructura como Código (IaC)</h3><p>Gestión de infraestructura mediante <strong>archivos de definición</strong> en lugar de procesos manuales. Despliegues repetibles y consistentes.</p><h3>ARM Templates</h3><p>Archivos <strong>JSON declarativos</strong> que definen infraestructura y configuración Azure.</p><ul><li>Declarativo — describe qué quieres, no cómo crearlo</li><li>Idempotente — mismo resultado al ejecutar múltiples veces</li><li>Versionado en Git</li></ul><h3>Bicep</h3><p>Lenguaje más sencillo que compila a ARM JSON. Menos verboso y más legible.</p><h3>Azure Resource Manager</h3><p>Servicio de despliegue y gestión. Todas las operaciones Azure (portal, CLI, PowerShell, REST) pasan por ARM.</p><div class="tip-box"><div class="tip-hd">Consejo de examen</div>ARM Templates = IaC nativa de Azure, despliegues repetibles y auditables. Terraform es alternativa de terceros.</div>`},
+advisor:{title:"Azure Advisor",domain:"Gestión y Gobernanza Azure",body:`<h3>¿Qué es?</h3><p>Consultor personalizado en la nube que analiza configuraciones y uso de recursos, y proporciona <strong>recomendaciones accionables</strong> de forma gratuita.</p><h3>Cinco categorías</h3><div class="kv"><div class="k">Fiabilidad</div><div class="v">Continuidad de apps críticas. Ej. añadir redundancia a VMs.</div><div class="k">Seguridad</div><div class="v">Detectar amenazas. Ej. habilitar MFA para cuentas privilegiadas.</div><div class="k">Rendimiento</div><div class="v">Mejorar velocidad. Ej. usar Premium SSD para cargas con alto I/O.</div><div class="k">Coste</div><div class="v">Reducir gasto. Ej. ajustar tamaño de VMs infrautilizadas.</div><div class="k">Excelencia operacional</div><div class="v">Mejores prácticas de despliegue. Ej. usar ARM Templates.</div></div><div class="tip-box"><div class="tip-hd">Consejo de examen</div>Azure Advisor = 5 categorías. Gratuito. Proactivo. NO toma acciones automáticamente — solo sugiere.</div>`},
+monitor:{title:"Azure Monitor y Service Health",domain:"Gestión y Gobernanza Azure",body:`<h3>Azure Monitor</h3><p>Plataforma de monitorización que recopila, analiza y actúa sobre <strong>telemetría de Azure y on-premises</strong>.</p><div class="kv"><div class="k">Métricas</div><div class="v">Valores numéricos a intervalos regulares (% CPU, memoria)</div><div class="k">Log Analytics</div><div class="v">Logs consultables con KQL. Repositorio centralizado.</div><div class="k">Alertas</div><div class="v">Notifica cuando se cumplen condiciones (ej. CPU > 90%)</div><div class="k">Application Insights</div><div class="v">APM para apps web. Rastrea solicitudes, fallos y dependencias.</div></div><h3>Azure Service Health</h3><p>Vista personalizada del estado de Azure — interrupciones activas, mantenimientos planificados e historial que afectan a TUS suscripciones.</p><div class="tip-box"><div class="tip-hd">Consejo de examen</div>Azure Monitor = estado de TUS recursos. Service Health = estado de la PLATAFORMA Azure. Diferentes, no confundirlos.</div>`}
+};
+
+// ══ FLASHCARDS ══
+const FC = [
+  {q:"¿Qué es el Cloud Computing?",a:"Entrega de servicios TI a través de internet bajo demanda. Solo pagas por lo que usas (modelo OPEX)."},
+  {q:"¿Qué es el Modelo de Responsabilidad Compartida?",a:"Divide responsabilidades de seguridad entre Microsoft (física, red, host) y el cliente (datos, identidades, apps). Varía según IaaS/PaaS/SaaS."},
+  {q:"¿Qué es una Región de Azure?",a:"Área geográfica con uno o más datacenters. Permite residencia de datos y baja latencia para usuarios."},
+  {q:"¿Qué son las Zonas de Disponibilidad?",a:"Datacenters físicamente separados dentro de una región, con energía y red independientes. Protegen contra fallos de datacenter."},
+  {q:"¿Qué es un Grupo de Recursos?",a:"Contenedor lógico para recursos Azure relacionados. Eliminar el grupo elimina TODOS los recursos dentro."},
+  {q:"¿Diferencia entre IaaS, PaaS y SaaS?",a:"IaaS: gestionas el SO y más (VMs). PaaS: solo apps y datos (App Service). SaaS: software listo para usar (Microsoft 365)."},
+  {q:"¿Qué son los VM Scale Sets?",a:"Grupo de VMs idénticas con autoescalado y balanceo de carga. Escalan automáticamente según la demanda."},
+  {q:"¿Qué es VNet Peering?",a:"Conecta dos VNets Azure para que el tráfico use la red backbone de Microsoft, sin pasar por internet público."},
+  {q:"¿Qué es Azure Blob Storage?",a:"Almacenamiento de objetos para datos no estructurados. Tres niveles: Hot (frecuente), Cool (esporádico) y Archive (raro)."},
+  {q:"¿Qué es Microsoft Entra ID?",a:"Servicio de identidad y acceso en la nube (antes Azure AD). Gestiona usuarios, SSO, MFA y acceso a aplicaciones."},
+  {q:"¿Qué es RBAC en Azure?",a:"Control de Acceso Basado en Roles. Concede acceso según roles asignados: Owner, Contributor, Reader."},
+  {q:"¿Qué es Zero Trust?",a:"Modelo de seguridad: 'Nunca confíes, siempre verifica'. Requiere verificación continua sin importar la ubicación."},
+  {q:"¿Qué es Azure Policy?",a:"Crea y aplica reglas sobre recursos Azure para garantizar cumplimiento organizativo. NO gestiona acceso (eso es RBAC)."},
+  {q:"¿Qué es Azure Arc?",a:"Extiende la gestión Azure (Policy, Monitor, RBAC) a recursos fuera de Azure: servidores on-premises y otras nubes."},
+  {q:"¿Qué son los ARM Templates?",a:"Archivos JSON declarativos para definir infraestructura Azure como código. Permiten despliegues repetibles y versionados."},
+  {q:"¿Qué es Azure Advisor?",a:"Consultor gratuito con recomendaciones en 5 áreas: Fiabilidad, Seguridad, Rendimiento, Coste y Excelencia Operacional."},
+  {q:"¿Qué es Azure Monitor?",a:"Plataforma para recopilar métricas y logs, crear alertas y visualizar telemetría de Azure y entornos locales."},
+  {q:"¿Qué es ExpressRoute?",a:"Conexión privada dedicada entre redes locales y Azure vía proveedor. NO usa internet público. Hasta 100 Gbps."},
+  {q:"¿Qué es la Calculadora de Precios de Azure?",a:"Herramienta web para estimar costes mensuales de servicios Azure antes de desplegar."},
+  {q:"¿Qué son los Bloqueos de Recursos?",a:"Previenen eliminación/modificación accidental. Tipos: CanNotDelete y ReadOnly. Prevalecen sobre RBAC."},
+  {q:"¿Qué es Azure Data Box?",a:"Dispositivo físico para transferir grandes volúmenes de datos a Azure cuando el ancho de banda es insuficiente."},
+  {q:"¿Qué es Microsoft Purview?",a:"Gobernanza de datos unificada. Descubre, clasifica y gestiona datos en entornos locales, multinube y SaaS."},
+  {q:"¿Qué es la Defensa en Profundidad?",a:"Seguridad por capas: Física → Perímetro → Red → Cómputo → App → Datos. Cada capa es un control adicional."},
+  {q:"¿Qué es Azure Service Health?",a:"Panel personalizado con estado de Azure, interrupciones activas y mantenimientos que afectan a tus suscripciones."},
+  {q:"¿Qué son los Pares de Regiones?",a:"Cada región Azure está emparejada con otra en la misma geografía para recuperación ante desastres."},
+  {q:"¿Qué es el Acceso Condicional?",a:"Políticas de Entra ID basadas en señales (usuario, dispositivo, ubicación, riesgo) antes de conceder acceso."},
+  {q:"¿LRS vs GRS?",a:"LRS: 3 copias en un datacenter. GRS: LRS + 3 copias en región emparejada. GRS protege de desastres regionales."},
+  {q:"¿Qué es AKS?",a:"Azure Kubernetes Service — Kubernetes gestionado para orquestación de contenedores con autoescalado."},
+  {q:"¿Qué es el modelo OPEX?",a:"Pagar solo por recursos consumidos, sin inversión inicial de capital. Convierte CAPEX en OPEX."},
+  {q:"¿Qué es Azure Cost Management?",a:"Herramientas para monitorizar, analizar y optimizar el gasto Azure. Permite definir presupuestos con alertas."}
+];
+
+// ══ QUIZ QUESTIONS ══
+const QS = [
+  {q:"¿Qué modelo de servicio cloud ofrece mayor control sobre el SO y hardware virtualizado?",opts:["SaaS","PaaS","IaaS","FaaS"],ans:2,exp:"IaaS proporciona VMs donde el cliente gestiona el SO, middleware y aplicaciones.",d:"Conceptos Cloud"},
+  {q:"Una empresa necesita que sus datos permanezcan en España. ¿Qué característica de Azure lo garantiza?",opts:["Zonas de disponibilidad","Pares de regiones","Regiones Azure (residencia de datos)","Azure Policy"],ans:2,exp:"Al desplegar en 'Spain Central', los datos residen físicamente en España cumpliendo requisitos de soberanía.",d:"Arquitectura"},
+  {q:"¿Cuál es la puntuación mínima para aprobar el examen AZ-900?",opts:["600","650","700","750"],ans:2,exp:"Se requiere 700 o más (en escala de 1-1000) para aprobar el AZ-900.",d:"General"},
+  {q:"¿Qué servicio extiende la gestión Azure a servidores físicos en el datacenter propio?",opts:["Azure Migrate","Azure Arc","Azure Stack Hub","Hybrid Benefit"],ans:1,exp:"Azure Arc extiende capacidades de gestión Azure a infraestructuras fuera de Azure.",d:"Gestión"},
+  {q:"¿Qué redundancia protege datos frente a la pérdida de una región Azure completa?",opts:["LRS","ZRS","GRS","RA-LRS"],ans:2,exp:"GRS replica datos en una región secundaria emparejada, protegiendo de desastres regionales.",d:"Arquitectura"},
+  {q:"Una startup quiere una app web sin gestionar servidores. ¿Qué opción es mejor?",opts:["Azure VMs","AKS","Azure App Service (PaaS)","ExpressRoute"],ans:2,exp:"Azure App Service es PaaS que hospeda apps web sin gestionar infraestructura.",d:"Conceptos Cloud"},
+  {q:"¿Qué herramienta analiza Azure y da recomendaciones sobre seguridad y coste?",opts:["Azure Monitor","Azure Service Health","Azure Advisor","Defender for Cloud"],ans:2,exp:"Azure Advisor es consultor gratuito personalizado con recomendaciones en 5 categorías.",d:"Gestión"},
+  {q:"¿Cuál NO es una ventaja del modelo de consumo en la nube?",opts:["Sin costes de capital iniciales","Pagar solo por lo usado","Tener hardware físico propio","Escalado flexible"],ans:2,exp:"Tener hardware físico propio es característica del modelo on-premises, no del consumo cloud.",d:"Conceptos Cloud"},
+  {q:"¿Qué garantiza que una app funcione si falla un datacenter dentro de una región?",opts:["Pares de regiones","Zonas de disponibilidad","Grupos de recursos","Grupos de administración"],ans:1,exp:"Las Zonas de disponibilidad son datacenters físicamente separados con infraestructura independiente.",d:"Arquitectura"},
+  {q:"¿Qué servicio ofrece gobernanza de datos para clasificar datos en múltiples nubes?",opts:["Azure Policy","Microsoft Purview","Compliance Manager","Security Center"],ans:1,exp:"Microsoft Purview ofrece gobernanza unificada: descubrimiento, clasificación y gestión del ciclo de vida.",d:"Gestión"},
+  {q:"¿Cuál es la jerarquía correcta en Azure de mayor a menor alcance?",opts:["Suscripción→Grupo mgmt→Grupo recursos","Grupo mgmt→Suscripción→Grupo recursos→Recursos","Grupo recursos→Suscripción→Grupo mgmt","Tenant→Recursos→Suscripción"],ans:1,exp:"Jerarquía: Tenant → Grupos de admin → Suscripciones → Grupos de recursos → Recursos.",d:"Arquitectura"},
+  {q:"¿Qué permite Azure VM Scale Sets?",opts:["Conectar VMs a una VNet privada","Escalar automáticamente el número de VMs","Crear snapshots de discos","Migrar VMs on-premises"],ans:1,exp:"Scale Sets crea y gestiona VMs idénticas con LB y escalado automático.",d:"Arquitectura"},
+  {q:"¿Qué tipo de nube combina on-premises con nube pública?",opts:["Nube privada","Nube comunitaria","Nube híbrida","Multi-cloud"],ans:2,exp:"La nube híbrida combina infraestructura privada con nube pública como Azure.",d:"Conceptos Cloud"},
+  {q:"¿Qué asume el modelo de seguridad Zero Trust?",opts:["Confiar en usuarios de la red interna","Nunca confíes, siempre verifica","Eliminar todos los firewalls","Solo autenticación por contraseña"],ans:1,exp:"Zero Trust: verificación continua de identidad y contexto, sin importar la red.",d:"Arquitectura"},
+  {q:"¿Cuál de los siguientes NO afecta a los costes Azure?",opts:["Región de despliegue","Tipo de soporte contratado","Consumo de cómputo","Número de empleados"],ans:3,exp:"El número de empleados no afecta los costes Azure. Los factores clave son tipo de recurso, región y consumo.",d:"Gestión"},
+  {q:"¿Qué herramienta transfiere petabytes cuando el ancho de banda es limitado?",opts:["Azure Migrate","Azure Data Box","AzCopy","Azure File Sync"],ans:1,exp:"Azure Data Box es un dispositivo físico que Microsoft envía — cargas los datos y lo devuelves.",d:"Arquitectura"},
+  {q:"¿Qué servicio detecta amenazas y proporciona una puntuación de seguridad?",opts:["Azure Sentinel","Defender for Cloud","Azure Firewall","DDoS Protection"],ans:1,exp:"Microsoft Defender for Cloud evalúa la postura de seguridad y recomienda acciones.",d:"Arquitectura"},
+  {q:"¿Qué tecnología define infraestructura Azure de forma declarativa?",opts:["Azure CLI","ARM Templates / Bicep","Azure DevOps Pipelines","Cloud Shell"],ans:1,exp:"ARM Templates y Bicep definen recursos Azure en archivos de configuración reutilizables (IaC).",d:"Gestión"},
+  {q:"¿Función principal de los Bloqueos de Recursos?",opts:["Optimizar rendimiento","Prevenir eliminación/modificación accidental","Controlar acceso por roles","Cifrar datos"],ans:1,exp:"CanNotDelete y ReadOnly protegen recursos críticos independientemente de los permisos RBAC.",d:"Gestión"},
+  {q:"¿Qué servicio conecta el datacenter físico a Azure con conexión privada sin internet?",opts:["VPN Gateway","ExpressRoute","Virtual WAN","Azure Bastion"],ans:1,exp:"ExpressRoute proporciona conectividad privada dedicada a Azure sin pasar por internet.",d:"Arquitectura"}
+];
+
+// ── ICON HELPERS ──
+const IC={
+  sun:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`,
+  timer:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><polyline points="12 9 12 13 14 15"/><path d="M9 2h6M12 2v2"/></svg>`,
+  target:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>`,
+  chain:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
+  skull:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M12 2a9 9 0 0 1 9 9c0 3.18-1.65 5.97-4.12 7.59L16 21H8l-.88-2.41A9.01 9.01 0 0 1 3 11a9 9 0 0 1 9-9z"/><circle cx="9" cy="12" r="1.5" fill="currentColor"/><circle cx="15" cy="12" r="1.5" fill="currentColor"/><path d="M9 18v1M12 18v1M15 18v1"/></svg>`,
+  swords:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M14.5 17.5L3 6V3h3l11.5 11.5"/><path d="M13 19l6-6 2 2-6 6-2-2z"/><path d="M3 21l9-9M5 11L3 3l8 2z"/></svg>`,
+  book:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`,
+  check:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+  star:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
+  zap:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+  trophy:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2z"/></svg>`,
+  hat:`<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>`,
+  clipboard:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="13" y2="16"/></svg>`,
+  cloud2:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>`,
+  layers:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>`,
+  sliders:`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>`,
+};
+
+const CHALLENGES = [
+  {id:'daily', icon:IC.sun,   name:'Reto Diario',        desc:'Una pregunta especial. ¿Puedes mantener la racha perfecta?',          diff:'easy',xp:50, n:1, time:0},
+  {id:'speed', icon:IC.timer, name:'Speed Round',         desc:'10 preguntas en 90 segundos. Velocidad y precisión.',                  diff:'med', xp:150,n:10,time:90},
+  {id:'domain',icon:IC.target,name:'Maestría por Dominio',desc:'Demuestra que dominas los 3 bloques del AZ-900.',                      diff:'med', xp:200,n:15,time:0},
+  {id:'streak',icon:IC.chain, name:'Cadena de 7',          desc:'7 preguntas seguidas sin fallar ninguna.',                            diff:'med', xp:100,n:20,time:0},
+  {id:'boss',  icon:IC.skull, name:'Boss Battle',          desc:'15 preguntas difíciles. Sin pistas. Solo una oportunidad.',           diff:'hard',xp:500,n:15,time:0},
+  {id:'pvp',   icon:IC.swords,name:'Duelo LAN',            desc:'Juega en tiempo real contra otro jugador en red local. Por invitación.',diff:'med',xp:300,n:10,time:0}
+];
+
+
+// ══ AVATAR COLORS ══
+const AVATAR_COLORS = ['#4f8ef7','#22d3ee','#a78bfa','#34d399','#f472b6','#fb923c','#fbbf24','#f87171'];
+function getAvatarColor(name){const c=name.charCodeAt(0)%AVATAR_COLORS.length;return AVATAR_COLORS[c]||AVATAR_COLORS[0]}
+function getInitials(name){return name.trim().split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)}
+
+// ══ LOGIN ══
+let currentUser = null;
+function getProfiles(){return JSON.parse(localStorage.getItem('az9_profiles')||'[]')}
+function saveProfiles(p){localStorage.setItem('az9_profiles',JSON.stringify(p))}
+function getUserKey(u){return'az9_u_'+u.toLowerCase().replace(/\s+/g,'_')}
+function loadUserState(username){
+  const k=getUserKey(username);
+  const raw=localStorage.getItem(k);
+  if(raw)return JSON.parse(raw);
+  return{studied:[],correct:0,streak:0,xp:0,achievements:[],selectedTopic:null};
+}
+function saveUserState(){
+  if(!currentUser)return;
+  const k=getUserKey(currentUser);
+  localStorage.setItem(k,JSON.stringify({
+    studied:[...S.studied],correct:S.correct,streak:S.streak,xp:S.xp,
+    achievements:[...S.achievements],selectedTopic:S.selectedTopic
+  }));
+}
+
+function updateLoginAvatar(){
+  const n=document.getElementById('login-name').value.trim();
+  const av=document.getElementById('l-avatar');
+  if(n.length>0){av.textContent=getInitials(n);av.style.background=getAvatarColor(n);av.style.color='#fff';}
+  else{av.textContent='?';av.style.background='var(--bg3)';av.style.color='var(--a)';}
+}
+
+function renderProfiles(){
+  const profs=getProfiles();
+  const el=document.getElementById('profiles-list');
+  if(!profs.length){el.innerHTML='<div class="no-profiles">No hay perfiles guardados todavía</div>';return;}
+  el.innerHTML=profs.map(p=>{
+    const st=loadUserState(p.name);
+    const color=getAvatarColor(p.name);
+    return`<div class="profile-item" onclick="loginAs('${p.name}')">
+      <div class="p-avatar" style="background:${color};color:#fff">${getInitials(p.name)}</div>
+      <div class="p-info"><div class="p-name">${p.name}</div><div class="p-meta">${st.xp} XP · ${st.studied.length} temas</div></div>
+      <button class="p-del" onclick="event.stopPropagation();deleteProfile('${p.name}')" title="Eliminar">×</button>
+    </div>`;
+  }).join('');
+}
+
+function doLogin(){
+  const n=document.getElementById('login-name').value.trim();
+  if(!n){document.getElementById('login-name').focus();return;}
+  loginAs(n);
+}
+
+function loginAs(name){
+  currentUser=name;
+  const profs=getProfiles();
+  if(!profs.find(p=>p.name===name))profs.unshift({name,created:Date.now()});
+  else{const i=profs.findIndex(p=>p.name===name);if(i>0){profs.unshift(profs.splice(i,1)[0]);}}
+  saveProfiles(profs);
+  const saved=loadUserState(name);
+  S.studied=new Set(saved.studied);S.correct=saved.correct;S.streak=saved.streak;
+  S.xp=saved.xp;S.achievements=new Set(saved.achievements);S.selectedTopic=saved.selectedTopic;
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('topbar').style.display='';
+  document.getElementById('app-body').style.display='';
+  document.getElementById('app-footer').style.display='';
+  const av=document.getElementById('uc-avatar');
+  av.textContent=getInitials(name);av.style.background=getAvatarColor(name);av.style.color='#fff';
+  document.getElementById('uc-name').textContent=name;
+  document.getElementById('lb-myname').textContent=name;
+  document.getElementById('dash-hi').textContent='¡Hola, '+name+'!';
+  updateXPDisplay();
+  renderSidebar();renderDashboard();initFC();renderQuizModes();
+}
+
+function deleteProfile(name){
+  if(!confirm('¿Eliminar el perfil de '+name+'?'))return;
+  const profs=getProfiles().filter(p=>p.name!==name);
+  saveProfiles(profs);
+  localStorage.removeItem(getUserKey(name));
+  renderProfiles();
+}
+
+function logout(){
+  if(!confirm('¿Cerrar sesión?'))return;
+  saveUserState();currentUser=null;
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('topbar').style.display='none';
+  document.getElementById('app-body').style.display='none';
+  document.getElementById('app-footer').style.display='none';
+  document.getElementById('login-name').value='';
+  updateLoginAvatar();renderProfiles();
+}
+
+// ══ SIDEBAR ══
+let sidebarCollapsed = localStorage.getItem('az9_sb')==='1';
+function toggleSidebar(){
+  sidebarCollapsed=!sidebarCollapsed;
+  localStorage.setItem('az9_sb',sidebarCollapsed?'1':'0');
+  applySidebarState();
+}
+function applySidebarState(){
+  const sb=document.getElementById('sidebar');
+  if(sidebarCollapsed)sb.classList.add('collapsed');else sb.classList.remove('collapsed');
+}
+function openMobileSidebar(){
+  document.getElementById('sidebar').classList.add('mobile-open');
+  document.getElementById('sb-overlay').classList.add('show');
+}
+function closeMobileSidebar(){
+  document.getElementById('sidebar').classList.remove('mobile-open');
+  document.getElementById('sb-overlay').classList.remove('show');
+}
+
+// ══ STATE ══
+let S={studied:new Set(),correct:0,streak:0,xp:0,achievements:new Set(),selectedTopic:null,
+  quizMode:'standard',qs:[],qi:0,qAns:false,qScore:0,
+  fcCards:[],fcIdx:0,fcFlipped:false,
+  cId:null,cTimer:null,cTimeLeft:0,cQs:[],cIdx:0,cScore:0,cAns:false,cStreak:0,cMistakes:0};
+
+function save(){saveUserState()}
+function shuffle(a){return[...a].sort(()=>Math.random()-.5)}
+
+function getLevelInfo(xp){
+  const th=[0,100,250,500,900,1400,2000,3000,5000];
+  let lv=1;for(let i=0;i<th.length-1;i++){if(xp>=th[i])lv=i+1;}
+  const cur=th[Math.min(lv-1,th.length-1)];const nxt=th[Math.min(lv,th.length-1)];
+  return{level:lv,pct:nxt>cur?Math.round((xp-cur)/(nxt-cur)*100):100,remaining:Math.max(0,nxt-xp),nextLv:lv+1};
+}
+function updateXPDisplay(){
+  document.getElementById('xp-display').textContent=S.xp+' XP';
+  const li=getLevelInfo(S.xp);
+  if(document.getElementById('d-lv')){document.getElementById('d-lv').textContent=li.level;document.getElementById('d-xp').textContent=S.xp+' XP';document.getElementById('d-nxt').textContent=li.remaining+' XP para nivel '+li.nextLv;document.getElementById('d-xp-fill').style.width=li.pct+'%';}
+}
+function addXP(n){S.xp+=n;updateXPDisplay();save();checkAch();}
+
+// ══ ACH DATA — se desbloquean pasando retos con 0 fallos ══
+const ACH = [
+  {id:'perfect_daily',  icon:IC.sun,    name:'Día Perfecto',      desc:'Completa el Reto Diario sin ningún fallo',                    challengeId:'daily',  xpBonus:75,  liText:'¡Completé el Reto Diario del #AZ900 Study App con puntuación perfecta, 0 errores! Preparando la certificación Microsoft Azure Fundamentals.'},
+  {id:'perfect_speed',  icon:IC.zap,    name:'Velocidad Perfecta', desc:'Completa Speed Round (10 preguntas en 90s) sin ningún fallo', challengeId:'speed',  xpBonus:200, liText:'Completé el Speed Round del #AZ900 con puntuación perfecta: 10/10 sin errores en 90 segundos. Microsoft Azure Fundamentals bajo control.'},
+  {id:'perfect_domain', icon:IC.target, name:'Maestro Absoluto',   desc:'Completa Maestría por Dominio sin ningún fallo',             challengeId:'domain', xpBonus:300, liText:'¡Maestría por Dominio completada con 0 fallos en el #AZ900 Study App! Los 3 dominios de Microsoft Azure Fundamentals dominados al 100%.'},
+  {id:'perfect_streak', icon:IC.chain,  name:'Racha Imparable',    desc:'Completa la Cadena de 7 sin ningún fallo',                   challengeId:'streak', xpBonus:150, liText:'Encadené 7 respuestas perfectas seguidas en el #AZ900 Study App. Cero errores. Microsoft Azure Fundamentals me está saliendo redondo.'},
+  {id:'perfect_boss',   icon:IC.skull,  name:'Leyenda Azure',      desc:'Supera el Boss Battle (15 preguntas) sin ningún fallo',      challengeId:'boss',   xpBonus:600, liText:'Derroté el Boss Battle del #AZ900 con PUNTUACIÓN PERFECTA — 15/15 sin un solo error. Listo para la certificación Microsoft Azure Fundamentals. #Azure #Cloud #Microsoft'}
+];
+
+// ══ ACH MODAL ══
+let currentAchModal = null;
+function openAchModal(id){
+  const a=ACH.find(x=>x.id===id);if(!a)return;
+  const unlocked=S.achievements.has(id);
+  const chal=CHALLENGES.find(c=>c.id===a.challengeId);
+  document.getElementById('am-icon').innerHTML=a.icon;
+  document.getElementById('am-title').textContent=a.name;
+  document.getElementById('am-desc').textContent=unlocked?a.desc:(chal?'Completa '+chal.name+' sin ningún fallo':a.desc);
+  const xpEl=document.getElementById('am-xp');
+  xpEl.textContent=unlocked?'★ Desbloqueado · +'+a.xpBonus+' XP obtenidos':'★ +'+a.xpBonus+' XP al conseguirlo';
+  xpEl.style.background=unlocked?'rgba(52,211,153,.15)':'rgba(167,139,250,.15)';
+  xpEl.style.color=unlocked?'var(--ok)':'var(--a3)';
+  xpEl.style.borderColor=unlocked?'rgba(52,211,153,.3)':'rgba(167,139,250,.3)';
+  const fullText=a.liText+'\n\n#Microsoft #Certification #CloudComputing #AzureFundamentals';
+  document.getElementById('am-preview').innerHTML=`<strong>${a.liText}</strong>`;
+  document.getElementById('am-li-btn').dataset.shareText=encodeURIComponent(fullText);
+  document.getElementById('am-li-btn').disabled=!unlocked;
+  document.getElementById('am-li-btn').style.opacity=unlocked?'1':'.4';
+  document.getElementById('am-li-btn').title=unlocked?'':'Debes desbloquear el logro primero';
+  currentAchModal=id;
+  document.getElementById('ach-modal-overlay').classList.add('open');
+}
+function closeAchModal(e){
+  if(e&&e.target!==document.getElementById('ach-modal-overlay'))return;
+  document.getElementById('ach-modal-overlay').classList.remove('open');
+}
+function shareLinkedIn(){
+  const text=document.getElementById('am-li-btn').dataset.shareText;
+  const url='https://www.linkedin.com/sharing/share-offsite/?url='+encodeURIComponent('https://learn.microsoft.com/certifications/azure-fundamentals/')+'&summary='+text;
+  window.open(url,'_blank','noopener,width=600,height=500');
+}
+
+function checkAch(){
+  // Logros solo por retos perfectos (0 fallos) — se evalúan en endChallenge
+  // Esta función queda como hook para futuros logros adicionales
+}
+
+function showToast(icon,title,sub,onClick){
+  document.getElementById('t-icon').innerHTML=icon;
+  document.getElementById('t-title').textContent=title;
+  document.getElementById('t-sub').textContent=sub;
+  const t=document.getElementById('toast');
+  t.style.cursor=onClick?'pointer':'default';
+  t.onclick=onClick||null;
+  t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),4000);
+}
+
+// ══ NAVIGATION ══
+// ══ WARP TRANSITION ══
+let transitioning=false;
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+
+function triggerWarp(){
+  const cvs=document.getElementById('warp-overlay');
+  const dpr=window.devicePixelRatio||1;
+  cvs.width=window.innerWidth*dpr; cvs.height=window.innerHeight*dpr;
+  cvs.style.width='100%'; cvs.style.height='100%';
+  const ctx=cvs.getContext('2d');
+  const cx=cvs.width/2, cy=cvs.height/2;
+  const maxD=Math.hypot(cx,cy)*1.3;
+  const lines=Array.from({length:55},()=>({
+    angle:Math.random()*Math.PI*2,
+    d0:15+Math.random()*60,
+    len:50+Math.random()*130,
+    spd:0.7+Math.random()*1.4,
+    w:0.5+Math.random()*1.5
+  }));
+  let t=0; const TOTAL=20;
+  function frame(){
+    ctx.clearRect(0,0,cvs.width,cvs.height);
+    const p=t/TOTAL;
+    const alpha=p<.45?p/.45:1-(p-.45)/.55;
+    // bg tint
+    ctx.fillStyle=`rgba(5,6,10,${alpha*.75})`;
+    ctx.fillRect(0,0,cvs.width,cvs.height);
+    // streaks
+    lines.forEach(l=>{
+      const dist=l.d0+(maxD-l.d0)*p*l.spd;
+      const x1=cx+Math.cos(l.angle)*dist;
+      const y1=cy+Math.sin(l.angle)*dist;
+      const x2=cx+Math.cos(l.angle)*(dist+l.len*(1+p*2.5));
+      const y2=cy+Math.sin(l.angle)*(dist+l.len*(1+p*2.5));
+      const g=ctx.createLinearGradient(x1,y1,x2,y2);
+      const col=p<.5?`rgba(79,142,247,${alpha})`:`rgba(167,139,250,${alpha})`;
+      g.addColorStop(0,col);
+      g.addColorStop(.4,`rgba(255,255,255,${alpha*.7})`);
+      g.addColorStop(1,'transparent');
+      ctx.strokeStyle=g; ctx.lineWidth=l.w*dpr;
+      ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+    });
+    // center glow
+    const grd=ctx.createRadialGradient(cx,cy,0,cx,cy,280*dpr);
+    grd.addColorStop(0,`rgba(167,139,250,${alpha*.45})`);
+    grd.addColorStop(.35,`rgba(79,142,247,${alpha*.18})`);
+    grd.addColorStop(1,'transparent');
+    ctx.fillStyle=grd; ctx.fillRect(0,0,cvs.width,cvs.height);
+    t++;
+    if(t<=TOTAL) requestAnimationFrame(frame);
+    else{ ctx.clearRect(0,0,cvs.width,cvs.height); cvs.width=1; }
+  }
+  requestAnimationFrame(frame);
+}
+
+async function switchTab(id){
+  if(transitioning)return;
+  transitioning=true;
+  const TAB_IDS=['dashboard','study','quiz','flashcards','challenges','progress'];
+  document.querySelectorAll('.nav-tab').forEach((b,i)=>b.classList.toggle('active',TAB_IDS[i]===id));
+  document.querySelectorAll('.mn-btn').forEach((b,i)=>b.classList.toggle('active',TAB_IDS[i]===id));
+  // exit current
+  const cur=document.querySelector('.section.active');
+  if(cur&&cur.id!=='tab-'+id){
+    cur.classList.add('warp-exit');
+    await sleep(180);
+    cur.classList.remove('active','warp-exit');
+  } else if(cur){
+    cur.classList.remove('active');
+  }
+  // warp flash
+  triggerWarp();
+  await sleep(80);
+  // enter new
+  const next=document.getElementById('tab-'+id);
+  next.classList.add('active','warp-enter');
+  setTimeout(()=>{next.classList.remove('warp-enter');transitioning=false;},400);
+  // load content
+  closeMobileSidebar();
+  if(id==='dashboard')renderDashboard();
+  if(id==='study')renderStudySection();
+  if(id==='quiz'){document.getElementById('quiz-home').style.display='block';document.getElementById('quiz-play').style.display='none';document.getElementById('quiz-results').style.display='none';}
+  if(id==='flashcards')initFC();
+  if(id==='challenges')renderChallengesHome();
+  if(id==='progress')renderProgress();
+}
+
+// ══ SIDEBAR RENDER ══
+function renderSidebar(){
+  const el=document.getElementById('sb-inner');
+  let h='';
+  DOMAINS.forEach((d,di)=>{
+    const dTopics=TOPICS.filter(t=>t.d===di);
+    const done=dTopics.filter(t=>S.studied.has(t.key)).length;
+    const pct=Math.round(done/dTopics.length*100);
+    h+=`<div class="sidebar-domain-hd" style="color:${d.color}">${d.name}</div><div class="sb-bar"><div class="sb-fill" style="width:${pct}%;background:${d.color}"></div></div>`;
+    dTopics.forEach(tp=>{
+      const isDone=S.studied.has(tp.key);const isAct=S.selectedTopic===tp.key;
+      h+=`<div class="sb-item ${isAct?'active':''}" onclick="goStudyTopic('${tp.key}')"><div class="sb-check ${isDone?'done':''}">${isDone?'✓':''}</div><span class="sb-name">${tp.name}</span></div>`;
+    });
+  });
+  el.innerHTML=h;
+}
+function goStudyTopic(key){switchTab('study');setTimeout(()=>selectStudyTopic(key),10)}
+
+// ══ DASHBOARD ══
+function renderDashboard(){
+  updateXPDisplay();
+  document.getElementById('dst-studied').textContent=S.studied.size;
+  document.getElementById('dst-correct').textContent=S.correct;
+  document.getElementById('dst-streak').textContent=S.streak;
+  document.getElementById('dst-xp').textContent=S.xp;
+  const domColors=['dc-blue','dc-cyan','dc-green'];
+  const pillColors=['pill-blue','pill-cyan','pill-green'];
+  document.getElementById('dash-domains').innerHTML=DOMAINS.map((d,di)=>{
+    const dTopics=TOPICS.filter(t=>t.d===di);
+    const done=dTopics.filter(tp=>S.studied.has(tp.key)).length;
+    const pct=Math.round(done/dTopics.length*100);
+    return`<div class="domain-card ${domColors[di]}" style="margin-bottom:14px">
+      <div class="dc-top"><div class="dc-name">${d.name}</div><div class="dc-badge">${d.weight} · ${done}/${dTopics.length}</div></div>
+      <div class="dc-bar"><div class="dc-fill" style="width:${pct}%;background:${d.color}"></div></div>
+      <div class="topic-pills">${dTopics.map(tp=>{
+        const isDone=S.studied.has(tp.key);
+        return`<span class="pill ${isDone?'done':''} ${pillColors[di]}" onclick="goStudyTopic('${tp.key}')">${tp.name}</span>`;
+      }).join('')}</div>
+    </div>`;
+  }).join('');
+
+  // Coming soon section
+  const SOON_CERTS=[
+    {cert:'AZ-104',name:'Azure Administrator 4,99€',     sub:'Manage Azure resources, storage, VMs and virtual networks',  tag:'Intermediate'},
+    {cert:'AZ-204',name:'Azure Developer Associate 5,49€',sub:'Build cloud solutions, Azure services and deployments',     tag:'Intermediate'},
+    {cert:'AZ-305',name:'Azure Solutions Architect 7,99€',sub:'Design secure, scalable and reliable Azure solutions',       tag:'Expert'},
+    {cert:'SC-900',name:'Security Fundamentals 1,49€',    sub:'Cloud security, identity and compliance basics',              tag:'Fundamentals'},
+    {cert:'DP-900',name:'Data Fundamentals 1,49€',        sub:'Core data concepts, Azure data services and analytics',      tag:'Fundamentals'},
+    {cert:'AI-900',name:'AI Fundamentals 1,99€',          sub:'AI and machine learning concepts on Microsoft Azure',        tag:'Fundamentals'},
+  ];
+  document.getElementById('dash-soon').innerHTML=`
+    <div class="soon-section">
+      <div class="soon-header">
+        <div class="soon-title">Más certificaciones Azure</div>
+        <span class="soon-badge">Próximamente</span>
+      </div>
+      <div class="soon-grid">
+        ${SOON_CERTS.map(c=>`
+          <div class="soon-card">
+            <svg class="soon-lock" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            <div class="soon-cert">${c.cert}</div>
+            <div class="soon-name">${c.name}</div>
+            <div class="soon-sub">${c.sub}</div>
+            <div class="soon-tag">
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12" y2="16"/></svg>
+              ${c.tag}
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+// ══ STUDY ══
+function renderStudySection(){
+  let h='';
+  DOMAINS.forEach((d,di)=>{
+    const dTopics=TOPICS.filter(t=>t.d===di);
+    h+=`<div class="topic-group-hd" style="color:${d.color}">${d.name}</div>`;
+    dTopics.forEach(tp=>{
+      const isDone=S.studied.has(tp.key);const isAct=S.selectedTopic===tp.key;
+      h+=`<button class="topic-btn ${isAct?'active':''} ${isDone?'done':''}" onclick="selectStudyTopic('${tp.key}')"><div class="tb-check ${isDone?'done':''}">${isDone?'✓':''}</div><span class="tb-name">${tp.name}</span></button>`;
+    });
+  });
+  document.getElementById('study-list').innerHTML=h;
+  if(S.selectedTopic)renderExplanation(S.selectedTopic);
+}
+
+function selectStudyTopic(key){
+  S.selectedTopic=key;save();
+  renderStudySection();renderSidebar();renderExplanation(key);
+}
+
+function renderExplanation(key){
+  const exp=EXPL[key];
+  if(!exp){document.getElementById('study-panel').innerHTML='<div class="sp-body"><div class="study-ph"><div class="ph-icon">🔧</div><div class="ph-text">Contenido próximamente</div></div></div>';return;}
+  const isDone=S.studied.has(key);
+  const domIdx=TOPICS.find(t=>t.key===key)?.d??0;
+  const domColor=DOMAINS[domIdx]?.color||'var(--a)';
+  document.getElementById('study-panel').innerHTML=`
+    <div class="sp-header"><div class="sp-domain" style="color:${domColor}">${exp.domain}</div><div class="sp-title">${exp.title}</div></div>
+    <div class="sp-body">
+      <div class="explain-content">${exp.body}</div>
+      <button class="mark-btn" onclick="markStudied('${key}')" ${isDone?'disabled':''}>
+        ${isDone?'✓ Estudiado':'✓ Marcar como estudiado'}
+      </button>
+    </div>`;
+}
+
+function markStudied(key){
+  S.studied.add(key);addXP(10);save();checkAch();
+  renderStudySection();renderSidebar();
+  showToast('📚','¡Completado!',EXPL[key]?.title||key);
+}
+
+// ══ QUIZ ══
+function renderQuizModes(){
+  const modes=[
+    {id:'standard', icon:IC.zap,       name:'Quiz Rápido',      desc:'5 preguntas'},
+    {id:'full',     icon:IC.clipboard, name:'Examen Completo',   desc:'20 preguntas'},
+    {id:'domain0',  icon:IC.cloud2,    name:'Conceptos Cloud',   desc:'25–30%'},
+    {id:'domain1',  icon:IC.layers,    name:'Arquitectura',      desc:'35–40%'},
+    {id:'domain2',  icon:IC.sliders,   name:'Gestión',           desc:'30–35%'},
+    {id:'hardest',  icon:IC.skull,     name:'Modo Difícil',      desc:'Solo difíciles'}
+  ];
+  document.getElementById('quiz-modes-grid').innerHTML=modes.map(m=>`
+    <div class="mode-card ${S.quizMode===m.id?'sel':''}" onclick="selectQMode('${m.id}',this)">
+      <div class="mc-icon" style="display:flex;align-items:center;justify-content:center;height:26px;opacity:.85">${m.icon}</div>
+      <div class="mc-name">${m.name}</div>
+      <div class="mc-desc">${m.desc}</div>
+    </div>`).join('');
+}
+function selectQMode(id,el){S.quizMode=id;document.querySelectorAll('.mode-card').forEach(c=>c.classList.remove('sel'));el.classList.add('sel')}
+
+function startQuiz(){
+  const all=QS;
+  if(S.quizMode==='standard')S.qs=shuffle(all).slice(0,5);
+  else if(S.quizMode==='full')S.qs=shuffle(all).slice(0,20);
+  else if(S.quizMode==='domain0')S.qs=shuffle(all.filter(q=>q.d.includes('Cloud'))).slice(0,8);
+  else if(S.quizMode==='domain1')S.qs=shuffle(all.filter(q=>q.d.includes('Arqu'))).slice(0,8);
+  else if(S.quizMode==='domain2')S.qs=shuffle(all.filter(q=>q.d.includes('Gest'))).slice(0,6);
+  else S.qs=shuffle(all).slice(0,10);
+  if(!S.qs.length)S.qs=shuffle(all).slice(0,5);
+  S.qi=0;S.qAns=false;S.qScore=0;
+  document.getElementById('quiz-home').style.display='none';
+  document.getElementById('quiz-play').style.display='block';
+  document.getElementById('quiz-results').style.display='none';
+  renderQQ();
+}
+function renderQQ(){
+  const q=S.qs[S.qi];const tot=S.qs.length;const pct=Math.round(S.qi/tot*100);
+  document.getElementById('quiz-play').innerHTML=`
+    <div class="q-prog"><div class="q-fill" style="width:${pct}%"></div></div>
+    <div class="q-card">
+      <div class="q-meta"><span class="q-tag">${q.d} · ${S.qi+1}/${tot}</span><span class="q-streak">${S.streak>0?'🔥 '+S.streak:''}</span></div>
+      <div class="q-text">${q.q}</div>
+      <div class="options">${q.opts.map((o,i)=>`<button class="opt" onclick="answerQ(${i})" id="qo${i}"><span class="opt-key">${String.fromCharCode(65+i)}</span>${o}</button>`).join('')}</div>
+      <div id="q-exp" style="display:none"></div>
+    </div>
+    <div id="q-foot" style="display:none;justify-content:space-between;margin-top:14px">
+      <div style="font-size:12px;color:var(--t3)">Puntos: ${S.qScore}/${S.qi}</div>
+      <button class="btn" style="border-color:var(--a);color:var(--a)" onclick="nextQQ()">Siguiente →</button>
+    </div>`;
+}
+function answerQ(idx){
+  if(S.qAns)return;S.qAns=true;
+  const q=S.qs[S.qi];const ok=idx===q.ans;
+  if(ok){S.qScore++;S.streak++;S.correct++;addXP(15);}else{S.streak=0;}
+  save();checkAch();
+  document.querySelectorAll('.opt').forEach((o,i)=>{o.disabled=true;if(i===q.ans)o.classList.add('correct');else if(i===idx&&!ok)o.classList.add('wrong');});
+  const exp=document.getElementById('q-exp');exp.style.display='block';exp.className='exp-box';
+  exp.innerHTML=`<strong style="color:${ok?'var(--ok)':'var(--err)'}">${ok?'✓ Correcto':'✗ Incorrecto'}</strong> — ${q.exp}`;
+  document.getElementById('q-foot').style.display='flex';
+}
+function nextQQ(){S.qi++;S.qAns=false;if(S.qi>=S.qs.length)showQEnd();else renderQQ();}
+function showQEnd(){
+  document.getElementById('quiz-play').style.display='none';
+  document.getElementById('quiz-results').style.display='block';
+  const pct=Math.round(S.qScore/S.qs.length*100);const pass=pct>=70;
+  document.getElementById('quiz-results').innerHTML=`
+    <div class="result-big">
+      <div style="font-size:12px;color:var(--t3);margin-bottom:4px">Resultado final</div>
+      <div class="result-num" style="${!pass?'background:linear-gradient(135deg,var(--err),var(--warn));-webkit-background-clip:text;-webkit-text-fill-color:transparent':''}">${S.qScore}/${S.qs.length}</div>
+      <div class="result-sub">${pct}% — ${pass?'¡Aprobado! +'+(S.qs.length*15)+' XP obtenidos':'Sigue practicando. Necesitas 70%+'}</div>
+      <div class="result-btns">
+        <button class="btn primary" onclick="startQuiz()">Repetir</button>
+        <button class="btn" onclick="document.getElementById('quiz-home').style.display='block';document.getElementById('quiz-results').style.display='none'">Cambiar modo</button>
+      </div>
+    </div>`;
+}
+
+// ══ FLASHCARDS ══
+function initFC(){
+  const v=document.getElementById('fc-domain')?.value||'all';
+  let cards=[...FC];
+  if(v!=='all'){const di=parseInt(v);const keys=TOPICS.filter(t=>t.d===di).map(t=>t.key);const perD=Math.ceil(cards.length/3);cards=cards.slice(di*perD,(di+1)*perD);}
+  S.fcCards=shuffle(cards);S.fcIdx=0;S.fcFlipped=false;
+  document.getElementById('fc-inner').classList.remove('flipped');
+  document.getElementById('fc-hint').textContent='Haz clic en la tarjeta para ver la respuesta';
+  renderFC();
+}
+function renderFC(){
+  const c=S.fcCards[S.fcIdx];if(!c)return;
+  document.getElementById('fc-q').textContent=c.q;
+  document.getElementById('fc-a').textContent=c.a;
+  document.getElementById('fc-count').textContent=`${S.fcIdx+1} / ${S.fcCards.length}`;
+  S.fcFlipped=false;document.getElementById('fc-inner').classList.remove('flipped');
+  document.getElementById('fc-hint').textContent='Haz clic en la tarjeta para ver la respuesta';
+}
+function flipFC(){S.fcFlipped=!S.fcFlipped;document.getElementById('fc-inner').classList.toggle('flipped',S.fcFlipped);document.getElementById('fc-hint').textContent=S.fcFlipped?'':'Haz clic para voltear de nuevo';}
+function fcMove(d){S.fcIdx=(S.fcIdx+d+S.fcCards.length)%S.fcCards.length;renderFC();}
+function fcMark(t){if(t==='easy'&&S.fcCards.length>1){S.fcCards.splice(S.fcIdx,1);S.fcIdx=Math.min(S.fcIdx,S.fcCards.length-1);}else fcMove(1);}
+
+// ══ CHALLENGES ══
+function renderChallengesHome(){
+  const li=getLevelInfo(S.xp);
+  document.getElementById('r-lv').textContent=li.level;document.getElementById('r-xp').textContent=S.xp+' XP';
+  document.getElementById('r-nxt').textContent=li.remaining+' XP para nivel '+li.nextLv;
+  document.getElementById('r-xp-fill').style.width=li.pct+'%';
+  document.getElementById('lb-my').textContent=S.xp;
+  document.getElementById('challenges-home').style.display='block';
+  document.getElementById('challenge-active').style.display='none';
+  const colors=['rc-blue','rc-cyan','rc-purple','rc-amber','rc-red','rc-green'];
+  document.getElementById('retos-grid').innerHTML=CHALLENGES.map((c,i)=>`
+    <div class="reto-card ${colors[i]}" onclick="${c.id==='pvp'?'openPvpPanel()':'startChallenge(\''+c.id+'\')'}">
+      <div class="reto-icon" style="display:flex;align-items:center;height:28px;margin-bottom:10px;opacity:.85">${c.icon}</div>
+      <div class="reto-name">${c.name}</div>
+      <div class="reto-desc">${c.desc}</div>
+      <div class="reto-footer"><span class="diff ${c.diff==='easy'?'diff-e':c.diff==='med'?'diff-m':'diff-h'}">${c.diff==='easy'?'fácil':c.diff==='med'?'medio':'difícil'}</span><span class="reto-xp">${c.id==='pvp'?'LAN':'+'+c.xp+' XP'}</span></div>
+    </div>`).join('');
+  document.getElementById('ach-panel').innerHTML=
+    '<div class="mini-hd">Logros <span class="hp" style="color:var(--t3)">Clic para compartir</span></div>'+
+    ACH.map(a=>{
+      const u=S.achievements.has(a.id);
+      const chal=CHALLENGES.find(c=>c.id===a.challengeId);
+      const condText=chal?chal.icon+' '+chal.name+' sin errores':'—';
+      return`<div class="ach-row ${!u?'locked':''} ${u?'ach-row-unlocked':''}"
+        onclick="${u?`openAchModal('${a.id}')`:''}"
+        style="cursor:${u?'pointer':'default'}">
+        <span class="ach-icon">${u?a.icon:'🔒'}</span>
+        <div style="flex:1;min-width:0">
+          <div class="ach-name">${a.name}</div>
+          <div class="ach-desc">${u?a.desc:condText}</div>
+        </div>
+        ${u?`<span class="ach-share-hint">↗ LinkedIn</span>`:`<span style="font-family:'DM Mono',monospace;font-size:10px;color:var(--t3);flex-shrink:0">+${a.xpBonus} XP</span>`}
+      </div>`;
+    }).join('');
+}
+
+function startChallenge(id){
+  const cfg=CHALLENGES.find(c=>c.id===id);
+  S.cId=id;S.cIdx=0;S.cScore=0;S.cAns=false;S.cStreak=0;S.cMistakes=0;
+  S.cQs=shuffle(QS).slice(0,cfg.n);S.cTimeLeft=cfg.time;
+  document.getElementById('challenges-home').style.display='none';
+  document.getElementById('challenge-active').style.display='block';
+  if(cfg.time>0){if(S.cTimer)clearInterval(S.cTimer);S.cTimer=setInterval(()=>{S.cTimeLeft--;const el=document.getElementById('c-timer');if(el){el.textContent=fmt(S.cTimeLeft);el.className='timer'+(S.cTimeLeft<=10?' urgent':'');}if(S.cTimeLeft<=0){clearInterval(S.cTimer);endChallenge();}},1000);}
+  renderCQ(cfg);
+}
+function fmt(s){return`${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}`}
+function renderCQ(cfg){
+  if(!cfg)cfg=CHALLENGES.find(c=>c.id===S.cId);
+  const q=S.cQs[S.cIdx];const tot=S.cQs.length;const pct=Math.round(S.cIdx/tot*100);
+  document.getElementById('challenge-active').innerHTML=`
+    <div class="challenge-hd"><div class="ch-title">${cfg.icon} ${cfg.name}</div>${cfg.time>0?`<div class="timer" id="c-timer">${fmt(S.cTimeLeft)}</div>`:`<div style="font-family:'DM Mono',monospace;font-size:12px;color:var(--t3)">${S.cIdx+1}/${tot}</div>`}</div>
+    <div class="q-prog"><div class="q-fill" style="width:${pct}%"></div></div>
+    <div class="q-card">
+      <div class="q-meta"><span class="q-tag">${q.d} · Puntos: ${S.cScore}</span><span class="q-streak">${S.cStreak>0?'🔥 '+S.cStreak:''}</span></div>
+      <div class="q-text">${q.q}</div>
+      <div class="options">${q.opts.map((o,i)=>`<button class="opt" onclick="answerC(${i})" id="co${i}"><span class="opt-key">${String.fromCharCode(65+i)}</span>${o}</button>`).join('')}</div>
+      <div id="c-exp" style="display:none"></div>
+    </div>
+    <div id="c-foot" style="display:none;justify-content:space-between;margin-top:14px">
+      <button class="btn" onclick="renderChallengesHome()">← Retos</button>
+      <button class="btn" style="border-color:var(--a);color:var(--a)" onclick="nextCQ()">Siguiente →</button>
+    </div>`;
+}
+function answerC(idx){
+  if(S.cAns)return;S.cAns=true;
+  const q=S.cQs[S.cIdx];const ok=idx===q.ans;
+  if(ok){S.cScore++;S.cStreak++;S.streak++;S.correct++;addXP(20);}
+  else{S.cMistakes++;S.cStreak=0;S.streak=0;}
+  save();checkAch();
+  if(S.cId==='streak'&&S.cStreak>=7){setTimeout(()=>endChallenge(true),600);return;}
+  document.querySelectorAll('.opt').forEach((o,i)=>{o.disabled=true;if(i===q.ans)o.classList.add('correct');else if(i===idx&&!ok)o.classList.add('wrong');});
+  const exp=document.getElementById('c-exp');if(exp){exp.style.display='block';exp.className='exp-box';exp.innerHTML=`<strong style="color:${ok?'var(--ok)':'var(--err)'}">${ok?'✓ Correcto':'✗ Incorrecto'}</strong> — ${q.exp}`;}
+  const cf=document.getElementById('c-foot');if(cf)cf.style.display='flex';
+}
+function nextCQ(){S.cIdx++;S.cAns=false;if(S.cIdx>=S.cQs.length)endChallenge();else renderCQ();}
+function endChallenge(won){
+  if(S.cTimer)clearInterval(S.cTimer);
+  const cfg=CHALLENGES.find(c=>c.id===S.cId);
+  const tot=S.cQs.length;
+  const pct=tot>0?Math.round(S.cScore/tot*100):0;
+  const pass=S.cId==='streak'?won:(pct>=70);
+  const isPerfect=S.cMistakes===0&&tot>0&&pass;
+
+  // XP por completar el reto
+  let bxp=0;
+  if(pass){bxp=cfg.xp;addXP(bxp);}
+
+  // Logro por reto perfecto (0 fallos)
+  let newAch=null;
+  if(isPerfect){
+    const a=ACH.find(x=>x.challengeId===S.cId);
+    if(a&&!S.achievements.has(a.id)){
+      S.achievements.add(a.id);
+      S.xp+=a.xpBonus;
+      save();
+      newAch=a;
+    }
+  }
+
+  // Render resultado
+  const perfectBadge=isPerfect
+    ?`<div style="display:inline-flex;align-items:center;gap:8px;margin:10px auto 0;background:rgba(52,211,153,.12);border:1px solid rgba(52,211,153,.35);border-radius:20px;padding:8px 18px;font-family:'DM Mono',monospace;font-size:12px;color:var(--ok)">✦ ¡Puntuación perfecta! 0 errores</div>`
+    :'';
+
+  document.getElementById('challenge-active').innerHTML=`
+    <div class="result-big">
+      <div style="font-size:12px;color:var(--t3);margin-bottom:4px">${cfg.icon} ${cfg.name}</div>
+      <div class="result-num" style="${!pass?'background:linear-gradient(135deg,var(--err),var(--warn));-webkit-background-clip:text;-webkit-text-fill-color:transparent':''}">
+        ${S.cId==='streak'?S.cStreak+'/7':S.cScore+'/'+tot}
+      </div>
+      ${perfectBadge}
+      <div class="result-sub" style="margin-top:${isPerfect?'10px':'0'}">
+        ${pass?'¡Reto superado! +'+bxp+' XP':'Sigue entrenando — necesitas 70%+'}
+        ${isPerfect&&newAch?' · <span style="color:var(--a3)">+'+newAch.xpBonus+' XP bonus</span>':''}
+      </div>
+      <div class="result-btns" style="margin-top:16px">
+        <button class="btn primary" onclick="startChallenge('${S.cId}')">Repetir</button>
+        <button class="btn" onclick="renderChallengesHome()">← Volver</button>
+        ${isPerfect&&newAch?`<button class="btn" style="border-color:rgba(52,211,153,.4);color:var(--ok)" onclick="openAchModal('${newAch.id}')">🏆 Ver logro</button>`:''}
+      </div>
+    </div>`;
+
+  // Toast con call-to-action de logro
+  if(isPerfect&&newAch){
+    setTimeout(()=>{
+      showToast(newAch.icon, newAch.name, '¡Toca para compartir en LinkedIn!', ()=>openAchModal(newAch.id));
+    }, 800);
+  }
+}
+
+
+// ══ LANG ══
+function setLang(l){
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active',b.textContent===l.toUpperCase()));
+}
+
+// ══ PROGRESS ══
+function renderProgress(){
+  const li=getLevelInfo(S.xp);
+  const now=new Date();
+  const ts=now.toISOString().replace('T',' ').slice(0,19);
+  const totalPct=Math.round(S.studied.size/TOPICS.length*100);
+  const domColors=[
+    {bar:'rgba(79,142,247,.75)',glow:'rgba(79,142,247,.4)',text:'rgba(79,142,247,.9)'},
+    {bar:'rgba(34,211,238,.7)', glow:'rgba(34,211,238,.35)',text:'rgba(34,211,238,.9)'},
+    {bar:'rgba(52,211,153,.7)', glow:'rgba(52,211,153,.35)',text:'rgba(52,211,153,.9)'}
+  ];
+  const leftHTML=DOMAINS.map((d,di)=>{
+    const c=domColors[di];
+    const dTopics=TOPICS.filter(t=>t.d===di);
+    const done=dTopics.filter(tp=>S.studied.has(tp.key)).length;
+    const pct=Math.round(done/dTopics.length*100);
+    const chips=dTopics.map(tp=>`<span class="bk-chip ${S.studied.has(tp.key)?'done':''}" onclick="goStudyTopic('${tp.key}')">${tp.name}</span>`).join('');
+    return`<div class="bk-section">
+      <div class="bk-domain-hd" style="color:${c.text};border-color:${c.text}25;text-shadow:0 0 10px ${c.glow}">${d.name}</div>
+      <div class="bk-progress-track">
+        <div class="bk-bar-outer">
+          <div class="bk-bar-inner" style="width:${pct}%;background:${c.bar};box-shadow:0 0 8px ${c.glow}"></div>
+        </div>
+        <span class="bk-pct" style="color:${c.text};text-shadow:0 0 8px ${c.glow}">${pct}%</span>
+      </div>
+      <div class="bk-topics">${done} / ${dTopics.length} modules initialized</div>
+      <div class="bk-topic-chips">${chips}</div>
+    </div>`;
+  }).join('');
+  const achHTML=ACH.map(a=>{
+    const u=S.achievements.has(a.id);
+    const si=a.icon.replace(/width="22"/g,'width="14"').replace(/height="22"/g,'height="14"');
+    return`<div class="bk-ach-item ${!u?'bk-ach-locked':''}" ${u?`onclick="openAchModal('${a.id}')" style="cursor:pointer"`:''}>
+      <div class="bk-ach-icon" style="color:${u?'rgba(167,139,250,.9)':'rgba(255,255,255,.25)'}">${si}</div>
+      <span class="bk-ach-name" style="${u?'color:rgba(255,255,255,.85)':''}">${a.name}</span>
+      ${u?`<span class="bk-ach-share">↗ share</span>`:''}
+    </div>`;
+  }).join('');
+  document.getElementById('tab-progress').innerHTML=`
+    <div class="book-outer">
+      <div class="book-shell">
+        <div class="book-left">
+          <div class="bk-page-header">
+            <div class="bk-title">STUDY LOG</div>
+            <div class="bk-page-num">PG. 01</div>
+          </div>
+          <div class="bk-date">${ts} UTC</div>
+          ${leftHTML}
+          <div class="bk-corner-stamp">
+            <span class="bk-stamp-top">total</span>
+            <span class="bk-stamp-pct">${totalPct}%</span>
+            <span class="bk-stamp-bot">AZ-900</span>
+          </div>
+        </div>
+        <div class="book-spine"><div class="spine-label">AZ-900</div></div>
+        <div class="book-right">
+          <div class="bk-page-header">
+            <div class="bk-title">SYSTEM STATUS</div>
+            <div class="bk-page-num">PG. 02</div>
+          </div>
+          <div class="bk-date">session · ${currentUser||'unknown'}</div>
+          <div style="margin-bottom:16px">
+            ${[['TOPICS_LOADED',S.studied.size+' / '+TOPICS.length],['CORRECT_ANS',S.correct],['STREAK',S.streak],['XP_TOTAL',S.xp+' XP'],['RANK_LEVEL','LVL '+li.level]].map(([l,v])=>`<div class="bk-stat-row"><span class="bk-stat-label">${l}</span><span class="bk-stat-val">${v}</span></div>`).join('')}
+          </div>
+          <div class="bk-divider"></div>
+          <div class="bk-domain-hd" style="margin-bottom:8px">XP PROGRESS · LV${li.level} → LV${li.nextLv}</div>
+          <div class="bk-level-bar"><div class="bk-level-fill" style="width:${li.pct}%"></div><div class="bk-level-text">${li.pct}% &nbsp;·&nbsp; ${li.remaining} XP remaining</div></div>
+          <div class="bk-divider"></div>
+          <div class="bk-domain-hd" style="margin-bottom:10px">ACHIEVEMENTS</div>
+          ${achHTML}
+        </div>
+      </div>
+    </div>`;
+}
+
+// ══ PvP LAN — BroadcastChannel (misma red, distintas pestañas) ══
+function seededShuffle(arr,seed){
+  const a=[...arr];let s=seed>>>0;
+  for(let i=a.length-1;i>0;i--){s=(Math.imul(s,1664525)+1013904223)>>>0;const j=s%(i+1);[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+
+let PVP={bc:null,role:null,room:null,qs:[],qi:0,myScore:0,opScore:0,myAnswered:[],opAnswered:[],opName:'???',gameReady:false,gameDone:false,opDone:false};
+
+function pvpSend(obj){try{if(PVP.bc)PVP.bc.postMessage(obj);}catch(e){}}
+
+function pvpHandleMsg(msg){
+  if(msg.type==='join'){
+    if(PVP.role!=='host')return;
+    PVP.opName=msg.name||'Oponente';
+    const seed=Date.now();
+    PVP.qs=seededShuffle(QS,seed).slice(0,10);
+    pvpSend({type:'welcome',name:currentUser,seed});
+    pvpStartGame();
+  } else if(msg.type==='welcome'){
+    if(PVP.role!=='guest')return;
+    PVP.opName=msg.name||'Host';
+    PVP.qs=seededShuffle(QS,msg.seed).slice(0,10);
+    pvpSend({type:'ready',name:currentUser});
+    pvpStartGame();
+  } else if(msg.type==='answer'){
+    PVP.opAnswered[msg.qi]=msg.correct?'right':'wrong';
+    if(msg.correct)PVP.opScore++;
+    pvpUpdateUI();
+  } else if(msg.type==='done'){
+    PVP.opDone=true;PVP.opScore=msg.score;pvpCheckEnd();
+  } else if(msg.type==='ping'){
+    pvpSend({type:'pong',name:currentUser});
+  } else if(msg.type==='pong'){
+    PVP.opName=msg.name||PVP.opName;
+    pvpRenderGuestConnected();
+  }
+}
+
+function pvpOpenChannel(room){
+  if(PVP.bc)PVP.bc.close();
+  PVP.room=room;
+  PVP.bc=new BroadcastChannel('az900-room-'+room);
+  PVP.bc.onmessage=e=>pvpHandleMsg(e.data);
+}
+
+function pvpReset(){
+  if(PVP.bc){try{PVP.bc.close();}catch{}}
+  PVP={bc:null,role:null,room:null,qs:[],qi:0,myScore:0,opScore:0,myAnswered:[],opAnswered:[],opName:'???',gameReady:false,gameDone:false,opDone:false};
+}
+
+function makePvpCode(){return String(Math.floor(1000+Math.random()*9000))}
+
+function openPvpPanel(){
+  document.getElementById('challenges-home').style.display='none';
+  document.getElementById('challenge-active').style.display='block';
+  pvpReset();
+  document.getElementById('challenge-active').innerHTML=`
+    <div class="pvp-panel">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+        <button class="btn" onclick="renderChallengesHome()">← Retos</button>
+        <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px">Duelo LAN</span>
+      </div>
+      <div class="pvp-hero">
+        <div class="big-icon" style="display:flex;justify-content:center;color:var(--a);opacity:.85;margin-bottom:12px">${IC.swords.replace('width="22"','width="52"').replace('height="22"','height="52"')}</div>
+        <h2>Duelo 1 vs 1</h2>
+        <p>Abre esta página en otra pestaña del mismo navegador.<br>Uno crea la sala, el otro se une con el mismo código.</p>
+      </div>
+      <div class="pvp-step-grid">
+        <div class="pvp-step" onclick="pvpCreateRoom()">
+          <div class="ps-icon" style="display:flex;justify-content:center;color:var(--a);height:36px">${IC.trophy.replace('width="18"','width="32"').replace('height="18"','height="32"')}</div>
+          <div class="ps-name" style="margin-top:8px">Crear sala</div>
+          <div class="ps-desc">Genera un código de 4 dígitos e invita al oponente</div>
+        </div>
+        <div class="pvp-step" onclick="pvpShowJoinUI()">
+          <div class="ps-icon" style="display:flex;justify-content:center;color:var(--a2);height:36px">${IC.swords.replace('width="22"','width="32"').replace('height="22"','height="32"')}</div>
+          <div class="ps-name" style="margin-top:8px">Unirse a sala</div>
+          <div class="ps-desc">Introduce el código de 4 dígitos del host</div>
+        </div>
+      </div>
+    </div>`;
+}
+
+function pvpCreateRoom(){
+  const code=makePvpCode();
+  PVP.role='host';
+  pvpOpenChannel(code);
+  // Poll for guest
+  const pollId=setInterval(()=>{pvpSend({type:'ping'});},1500);
+  PVP._poll=pollId;
+  document.getElementById('challenge-active').innerHTML=`
+    <div class="pvp-panel">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+        <button class="btn" onclick="pvpReset();renderChallengesHome()">← Cancelar</button>
+        <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px">Sala creada</span>
+      </div>
+      <div class="pvp-box">
+        <h3 style="color:#2c1f08">Código de sala</h3>
+        <div style="font-family:'Syne',sans-serif;font-size:56px;font-weight:800;text-align:center;letter-spacing:12px;color:var(--a);padding:16px 0;background:var(--bg2);border-radius:14px;margin-bottom:12px">${code}</div>
+        <div style="font-size:13px;color:var(--t2);text-align:center">Comparte este código con el oponente.<br>Dile que abra la app en una nueva pestaña y lo introduzca.</div>
+      </div>
+      <div class="pvp-status" id="pvp-host-status">
+        <div class="pvp-dot pulsing" style="background:var(--warn)"></div>
+        Esperando que el oponente se una…
+      </div>
+    </div>`;
+}
+
+function pvpRenderGuestConnected(){
+  clearInterval(PVP._poll);
+  const st=document.getElementById('pvp-host-status');
+  if(st){st.innerHTML=`<div class="pvp-dot" style="background:var(--ok)"></div><strong>${PVP.opName}</strong> se unió · Iniciando partida…`;}
+}
+
+function pvpShowJoinUI(){
+  PVP.role='guest';
+  document.getElementById('challenge-active').innerHTML=`
+    <div class="pvp-panel">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+        <button class="btn" onclick="openPvpPanel()">← Volver</button>
+        <span style="font-family:'Syne',sans-serif;font-weight:700;font-size:16px">Unirse a sala</span>
+      </div>
+      <div class="pvp-box">
+        <h3>Introduce el código de 4 dígitos</h3>
+        <input id="pvp-code-in" type="text" maxlength="4" inputmode="numeric" placeholder="_ _ _ _"
+          style="width:100%;text-align:center;font-family:'Syne',sans-serif;font-size:48px;font-weight:800;letter-spacing:12px;background:var(--bg2);border:1px solid var(--b);border-radius:14px;color:var(--a);padding:16px;outline:none;transition:border-color .2s"
+          oninput="this.style.borderColor=this.value.length===4?'var(--a)':'var(--b)'"
+          onkeydown="if(event.key==='Enter')pvpJoinRoom()">
+        <button class="btn primary" style="width:100%;margin-top:12px" onclick="pvpJoinRoom()">Conectar →</button>
+      </div>
+    </div>`;
+  setTimeout(()=>document.getElementById('pvp-code-in')?.focus(),100);
+}
+
+function pvpJoinRoom(){
+  const code=(document.getElementById('pvp-code-in')?.value||'').trim();
+  if(code.length!==4){showToast('','Código inválido','Introduce los 4 dígitos');return;}
+  pvpOpenChannel(code);
+  pvpSend({type:'join',name:currentUser});
+  document.getElementById('challenge-active').innerHTML=`
+    <div class="pvp-panel">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+        <button class="btn" onclick="pvpReset();renderChallengesHome()">← Cancelar</button>
+      </div>
+      <div class="pvp-waiting-screen">
+        <div style="display:flex;justify-content:center;color:var(--a2);margin-bottom:16px;animation:pvpPulse 1.2s infinite">${IC.swords.replace('width="22"','width="42"').replace('height="22"','height="42"')}</div>
+        <h3>Conectando a sala ${code}…</h3>
+        <p>Esperando confirmación del host…</p>
+      </div>
+    </div>`;
+}
+
+function pvpStartGame(){
+  if(PVP.gameReady)return;
+  PVP.gameReady=true;clearInterval(PVP._poll);
+  PVP.qi=0;PVP.myScore=0;PVP.opScore=0;PVP.myAnswered=[];PVP.opAnswered=[];
+  pvpRenderQuestion();
+}
+
+function pvpRenderQuestion(){
+  if(PVP.qi>=PVP.qs.length){pvpFinish();return;}
+  const q=PVP.qs[PVP.qi];const tot=PVP.qs.length;
+  const mkTrail=(arr,qi)=>Array.from({length:tot},(_,i)=>`<div class="pvp-dot-trail ${arr[i]||''} ${i===qi&&!arr[i]?'current':''}"></div>`).join('');
+  document.getElementById('challenge-active').innerHTML=`
+    <div class="pvp-panel">
+      <div class="pvp-scoreboard">
+        <div class="pvp-player">
+          <div class="pvp-player-name">${currentUser}</div>
+          <div class="pvp-player-score me" id="pvp-my-sc">${PVP.myScore}</div>
+          <div class="pvp-trail" id="pvp-my-tr">${mkTrail(PVP.myAnswered,PVP.qi)}</div>
+        </div>
+        <div class="pvp-vs">VS</div>
+        <div class="pvp-player">
+          <div class="pvp-player-name">${PVP.opName}</div>
+          <div class="pvp-player-score op" id="pvp-op-sc">${PVP.opScore}</div>
+          <div class="pvp-trail" id="pvp-op-tr">${mkTrail(PVP.opAnswered,PVP.qi)}</div>
+        </div>
+      </div>
+      <div class="q-prog"><div class="q-fill" style="width:${Math.round(PVP.qi/tot*100)}%"></div></div>
+      <div class="q-card">
+        <div class="q-meta"><span class="q-tag">${q.d} · ${PVP.qi+1}/${tot}</span><span style="font-size:11px;color:var(--t3)">Duelo LAN</span></div>
+        <div class="q-text">${q.q}</div>
+        <div class="options">${q.opts.map((o,i)=>`<button class="opt" onclick="pvpAnswer(${i})" id="pvo${i}"><span class="opt-key">${String.fromCharCode(65+i)}</span>${o}</button>`).join('')}</div>
+        <div id="pvp-exp" style="display:none"></div>
+      </div>
+    </div>`;
+}
+
+function pvpAnswer(idx){
+  const q=PVP.qs[PVP.qi];const ok=idx===q.ans;
+  if(ok)PVP.myScore++;
+  PVP.myAnswered[PVP.qi]=ok?'right':'wrong';
+  pvpSend({type:'answer',qi:PVP.qi,correct:ok});
+  document.querySelectorAll('.opt').forEach((o,i)=>{o.disabled=true;if(i===q.ans)o.classList.add('correct');else if(i===idx&&!ok)o.classList.add('wrong');});
+  const exp=document.getElementById('pvp-exp');
+  if(exp){exp.style.display='block';exp.className='exp-box';exp.innerHTML=`<strong style="color:${ok?'var(--ok)':'var(--err)'}">${ok?'Correcto':'Incorrecto'}</strong> — ${q.exp}`;}
+  pvpUpdateUI();
+  setTimeout(()=>{PVP.qi++;pvpRenderQuestion();},ok?900:1400);
+}
+
+function pvpUpdateUI(){
+  const tot=PVP.qs.length;
+  const mk=(arr,qi)=>Array.from({length:tot},(_,i)=>`<div class="pvp-dot-trail ${arr[i]||''} ${i===qi&&!arr[i]?'current':''}"></div>`).join('');
+  const e=id=>document.getElementById(id);
+  if(e('pvp-my-sc'))e('pvp-my-sc').textContent=PVP.myScore;
+  if(e('pvp-op-sc'))e('pvp-op-sc').textContent=PVP.opScore;
+  if(e('pvp-my-tr'))e('pvp-my-tr').innerHTML=mk(PVP.myAnswered,PVP.qi);
+  if(e('pvp-op-tr'))e('pvp-op-tr').innerHTML=mk(PVP.opAnswered,PVP.qi);
+}
+
+function pvpFinish(){
+  if(PVP.gameDone)return;PVP.gameDone=true;
+  pvpSend({type:'done',score:PVP.myScore});
+  if(PVP.opDone)pvpShowResult();
+  else document.getElementById('challenge-active').innerHTML=`<div class="pvp-panel"><div class="pvp-waiting-screen"><div style="display:flex;justify-content:center;color:var(--warn);margin-bottom:16px">${IC.timer.replace('width="22"','width="40"').replace('height="22"','height="40"')}</div><h3>Terminaste · ${PVP.myScore}/${PVP.qs.length}</h3><p>Esperando a <strong>${PVP.opName}</strong>…</p></div></div>`;
+}
+
+function pvpCheckEnd(){if(PVP.gameDone&&PVP.opDone)pvpShowResult();}
+
+function pvpShowResult(){
+  const tot=PVP.qs.length;
+  const win=PVP.myScore>PVP.opScore;const draw=PVP.myScore===PVP.opScore;
+  const xpEarned=win?300:draw?150:50;addXP(xpEarned);save();
+  const resultIcon=draw?IC.chain:win?IC.trophy:IC.skull;
+  const title=draw?'Empate':win?'Victoria':'Derrota';
+  document.getElementById('challenge-active').innerHTML=`
+    <div class="pvp-panel">
+      <div class="pvp-result">
+        <div style="display:flex;justify-content:center;color:${win?'var(--warn)':draw?'var(--a2)':'var(--err)'};margin-bottom:12px">${resultIcon.replace('width="18"','width="52"').replace('height="18"','height="52"')}</div>
+        <h2>${title}</h2>
+        <p style="color:var(--a3)">+${xpEarned} XP</p>
+        <div class="pvp-scores-row">
+          <div class="sc"><div class="sc-num" style="color:var(--a)">${PVP.myScore}</div><div class="sc-lbl">${currentUser}</div></div>
+          <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--t3);align-self:center">:</div>
+          <div class="sc"><div class="sc-num" style="color:var(--pink)">${PVP.opScore}</div><div class="sc-lbl">${PVP.opName}</div></div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          <button class="btn primary" onclick="pvpReset();openPvpPanel()">Nueva partida</button>
+          <button class="btn" onclick="renderChallengesHome()">← Retos</button>
+        </div>
+      </div>
+    </div>`;
+}
+
+function pvpDisconnect(msg){pvpReset();if(msg)showToast('','Desconectado',msg);renderChallengesHome();}
+
+// ══ STARFIELD ══
+function initStarfield(){
+  const canvas=document.getElementById('starfield');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  let W,H,stars=[];
+  function resize(){W=canvas.width=window.innerWidth;H=canvas.height=window.innerHeight;}
+  function mkStars(){
+    stars=[];
+    const n=Math.floor(W*H/3000);
+    for(let i=0;i<n;i++){
+      stars.push({
+        x:Math.random()*W, y:Math.random()*H,
+        r:Math.random()*1.2+.2,
+        a:Math.random(), da:(.002+Math.random()*.006)*(Math.random()<.5?1:-1),
+        twinkle:Math.random()>.6
+      });
+    }
+    // A few larger "cluster" stars
+    for(let i=0;i<12;i++){
+      stars.push({x:Math.random()*W,y:Math.random()*H,r:Math.random()*.8+1.4,a:.4+Math.random()*.5,da:.001,twinkle:true});
+    }
+  }
+  let raf;
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    stars.forEach(s=>{
+      if(s.twinkle){s.a+=s.da;if(s.a>1||s.a<.08){s.da*=-1;s.a=Math.max(.08,Math.min(1,s.a));}}
+      ctx.save();
+      ctx.globalAlpha=s.a;
+      // Color tint: mostly white, occasionally blue or purple
+      const tint=Math.random()>.97;
+      ctx.fillStyle=tint?(Math.random()>.5?'#a78bfa':'#4f8ef7'):'#ffffff';
+      ctx.beginPath();ctx.arc(s.x,s.y,s.r,0,Math.PI*2);ctx.fill();
+      ctx.restore();
+    });
+    raf=requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',()=>{resize();mkStars();});
+  resize();mkStars();draw();
+}
+
+// ══ BOOT ══
+applySidebarState();
+renderProfiles();
+initStarfield();
+</script>
+</body>
+</html>
