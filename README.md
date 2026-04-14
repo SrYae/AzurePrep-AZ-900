@@ -1,4 +1,6 @@
 <img width="1907" height="953" alt="image" src="https://github.com/user-attachments/assets/cb2d7b1c-aa47-4016-918d-c9030dd938d5" />
+<img width="2557" height="1314" alt="{90BDD7AB-2B48-4969-BABF-7FC941CA3571}" src="https://github.com/user-attachments/assets/43bd0af9-fa85-4b9b-8823-f5179db866b5" />
+
 # 🚀 AzurePrep AZ-900
 
 Una aplicación web diseñada para ayudarte a estudiar el examen de certificación **Microsoft Azure Fundamentals (AZ-900)**. 
